@@ -27,6 +27,7 @@ jobs:
       ########################################################################################################################
 
       - name: Load Info from Build
+        if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'}}
         run: |
           nameBuild=$(./_run/scripts/sys.sh -n)
           versionBuild=$(./_run/scripts/sys.sh -v)
@@ -38,6 +39,7 @@ jobs:
           echo "VER: $versionBuild"
 
       - name: Check Tag
+        if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
         run: |
           if [[ "${{ github.event.release.tag_name }}" != "${{ env.BUILD_VER }}" ]]; then
             curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
