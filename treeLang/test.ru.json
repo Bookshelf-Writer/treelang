@@ -1,0 +1,19 @@
+{
+  "info": {
+    "iso": "rus",
+    "date": "2024-05-20",
+    "hash": "ada252d711ab3aa80f1444f47eb4a37d",
+    "img": ""
+  },
+  "data": {
+    "arrayString1": [
+      "Ы1",
+      "Ы2"
+    ],
+    "groupString1": {
+      "a2": "435435ав",
+      "a3": "екнекн"
+    },
+    "string_value_1": "тестовый текст"
+  }
+}

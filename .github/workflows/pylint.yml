@@ -1,0 +1,180 @@
+name: Test and Build
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.json'
+      - '**.sh'
+      - '**.txt'
+
+jobs:
+
+#**********************************************************************************************************************#
+  test-module:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        python-version: ['3.10']
+    permissions:
+      contents: write
+
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+#######################################################################################################################
+
+      - name: Cache [ubuntu] init
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py-${{ matrix.python-version }}-local
+          restore-keys: |
+            ${{ runner.os }}-py-${{ matrix.python-version }}-
+            ${{ runner.os }}-py-
+
+      - name: Cache [macos] init
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py-${{ matrix.python-version }}-local
+          restore-keys: |
+            ${{ runner.os }}-py-${{ matrix.python-version }}-
+            ${{ runner.os }}-py-
+          enableCrossOsArchive: true
+
+      - name: Cache [windows] init
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runneradmin\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-py-${{ matrix.python-version }}-local
+          restore-keys: |
+            ${{ runner.os }}-py-${{ matrix.python-version }}-
+            ${{ runner.os }}-py-
+          enableCrossOsArchive: true
+
+########################################################################################################################
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install argparse
+          pip install colorama
+          pip install pyinstaller
+
+
+      - name: ⊡ Empy start
+        run: python script.py
+
+
+      - name: ⊡ [check] file
+        run: python script.py --check --file ''
+
+      - name: ⊡ [check] dir
+        run: python script.py --check --dir ''
+
+
+      - name: ⊡ [compiling](tree) file
+        run: python script.py --compiling --tree --file ''
+
+      - name: ⊡ [compiling](tree) dir
+        run: python script.py --compiling --tree --dir ''
+
+      - name: ⊡ [compiling](routs) file
+        run: python script.py --compiling --routs --file ''
+
+      - name: ⊡ [compiling](routs) dir
+        run: python script.py --compiling --routs --dir ''
+
+
+      - name: ⊡ [clone] file
+        run: python script.py --clone --file '' --pattern ''
+
+      - name: ⊡ [clone] dir
+        run: python script.py --clone --dir '' --pattern ''
+
+      - name: ⊡ [compare] file
+        run: python script.py --compare --file '' --pattern ''
+
+      - name: ⊡ [compare] dir
+        run: python script.py --compare --dir '' --pattern ''
+
+
+      - name: ⊡ [iso]
+        run: python script.py --iso
+
+      - name: ⊡ [iso](codeOnly)
+        run: python script.py --codeOnly --iso
+
+      - name: ⊡ [iso] fileJSON
+        run: python script.py --iso --fileJSON ''
+
+      - name: ⊡ [iso] code
+        run: python script.py --iso --code ''
+
+      - name: ⊡ [iso](codeOnly) code
+        run: python script.py --iso --codeOnly --code ''
+
+      - name: ⊡ [iso] name
+        run: python script.py --iso --name ''
+
+      - name: ⊡ [iso](codeOnly) name
+        run: python script.py --iso --codeOnly --name ''
+
+########################################################################################################################
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile script.py
+
+      - name: Init GitHub Action
+        env:
+          GPG_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Save [ubuntu] build
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+            mkdir -p cmd
+            mv dist/script cmd/TreeOfLanguages.linux.bin
+            git add cmd/TreeOfLanguages.linux.bin
+            git commit -m "* ${{ github.ref_name }} [ubuntu]: Compiling to executable" || echo "No changes to commit"
+
+      - name: Save [macos] build
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+            mkdir -p cmd
+            mv dist/script cmd/TreeOfLanguages.macos.bin
+            git add cmd/TreeOfLanguages.macos.bin
+            git commit -m "* ${{ github.ref_name }} [macos]: Compiling to executable" || echo "No changes to commit"
+
+      - name: Save [windows] build
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          if (!(Test-Path -Path "cmd")) {
+            New-Item -ItemType Directory -Path "cmd"
+          }
+          Copy-Item -Path "dist\script.exe" -Destination "cmd\TreeOfLanguages.windows.exe" -Force
+          git add cmd/TreeOfLanguages.windows.exe
+          git commit -m "* ${{ github.ref_name }} [windows]: Compiling to executable" || echo "No changes to commit"
+        shell: pwsh
+
+
+      - name: Commit files
+        run: |
+          git fetch origin
+          git rebase origin/${{ github.ref_name }}
+          git push --force-with-lease origin ${{ github.ref_name }}

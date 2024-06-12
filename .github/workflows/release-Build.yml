@@ -1,0 +1,163 @@
+name: Example Build
+# Original source: https://github.com/Bookshelf-Writer/scripts-for-integration/blob/main/workflows/Example-Build.yml
+# When integrating, actions must have write permissions
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: "Build ${{ github.ref }} [${{ matrix.os }}]"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+        python-version: [ '3.10' ]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      ########################################################################################################################
+
+      - name: Load Info from Build
+        run: |
+          nameBuild=$(./_run/scripts/sys.sh -n)
+          versionBuild=$(./_run/scripts/sys.sh -v)
+
+          echo "BUILD_NAME=$nameBuild" >> $GITHUB_ENV
+          echo "BUILD_VER=$versionBuild" >> $GITHUB_ENV
+          
+          echo "NAME: $nameBuild"
+          echo "VER: $versionBuild"
+
+      - name: Check Tag
+        run: |
+          if [[ "${{ github.event.release.tag_name }}" != "${{ env.BUILD_VER }}" ]]; then
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+          
+            echo "::error ::Incorrect release tag. Should match the [${{ env.BUILD_VER }}]."
+            exit 1
+          fi
+
+      ########################################################################################################################
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache [ubuntu] init
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py-${{ matrix.python-version }}-local
+          restore-keys: |
+            ${{ runner.os }}-py-${{ matrix.python-version }}-
+            ${{ runner.os }}-py-
+
+      - name: Cache [macos] init
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py-${{ matrix.python-version }}-local
+          restore-keys: |
+            ${{ runner.os }}-py-${{ matrix.python-version }}-
+            ${{ runner.os }}-py-
+          enableCrossOsArchive: true
+
+      - name: Cache [windows] init
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runneradmin\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-py-${{ matrix.python-version }}-local
+          restore-keys: |
+            ${{ runner.os }}-py-${{ matrix.python-version }}-
+            ${{ runner.os }}-py-
+          enableCrossOsArchive: true
+
+      #######################################################################################################################
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install argparse
+          pip install colorama
+          pip install pyinstaller  
+
+      - name: ⊡ Empy start
+        run: python script.py
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile script.py
+          
+
+      - name: Save [ubuntu] build
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: dist/script
+          asset_name: "${{ env.BUILD_NAME }}.${{ env.BUILD_VER }}.linux.bin"
+          asset_content_type: application/octet-stream
+
+      - name: Save [macos] build
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: dist/script
+          asset_name: "${{ env.BUILD_NAME }}.${{ env.BUILD_VER }}.macos.bin"
+          asset_content_type: application/octet-stream
+
+      - name: Save [windows] build
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: dist/script
+          asset_name: "${{ env.BUILD_NAME }}.${{ env.BUILD_VER }}.windows.exe"
+          asset_content_type: application/octet-stream
+
+      ########################################################################################################################
+
+      - name: Checkout to the [main]
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          if git branch -a | grep -qw "origin/main"; then
+            git checkout main
+          else
+            echo "No known branch found!"
+            exit 1
+          fi
+
+      - name: Push new version
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          new_version=$(./_run/scripts/sys.sh --increment --minor)
+          
+          git add ./_run/values/ver.txt
+          
+          git commit -m "actions [$new_version] "$'\n'"Build: [${{ env.BUILD_VER }}] >> [$new_version]"
+          git push origin HEAD:main
