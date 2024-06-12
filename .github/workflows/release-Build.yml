@@ -1,4 +1,4 @@
-name: Example Build
+name: Release Build
 # Original source: https://github.com/Bookshelf-Writer/scripts-for-integration/blob/main/workflows/Example-Build.yml
 # When integrating, actions must have write permissions
 
