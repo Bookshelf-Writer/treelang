@@ -159,6 +159,15 @@ python3 script.py --compiling --reactTS --dir './treeLang'
 - Все языковые файлы в `dir` приводятся к единой структуре, недостающие поля копируются из `pattern`
 - Создание (или обновление) файла `languages.ts` с встраиванием всех языковых файлов в `dir`
 
+##### Обновление интеграции с JS
+```bash
+python3 script.py --clone --pattern './treeLang/langTreeFile.ru.json' --dir './treeLang' 
+python3 script.py --compiling --JS --dir './treeLang' 
+```
+- Все языковые файлы в `dir` приводятся к единой структуре, недостающие поля копируются из `pattern`
+- Создание (или обновление) файла `languages.js` с встраиванием всех языковых файлов в `dir`
+
+
 ---
 
 ---

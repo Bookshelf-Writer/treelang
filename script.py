@@ -1002,11 +1002,13 @@ class ConsoleRouts:
     ####
 
     @staticmethod
-    def _reactTypeScriptFromFile(filePath):
+    def _reactTypeScriptFromFile(filePath, isJS=False):
         '''перекомпиляция конкретного файла для интеграции с React-TS'''
         _, treeObj = Tree.parseAndValidFile(filePath)
         react = ReactTS(str(FileSystem.dirFromFile(filePath)))
         fileName = FileSystem.fileFromFile(filePath)
+
+        react.isJS = isJS
 
         react.add(
             code=treeObj["info"]["iso"],
@@ -1018,12 +1020,14 @@ class ConsoleRouts:
 
 
     @staticmethod
-    def _reactTypeScriptFromDir(dirPath):
+    def _reactTypeScriptFromDir(dirPath, isJS=False):
         '''Перекомпиляция всех файлов в директории для в интеграции с React-TS'''
         filesInDir = FileSystem.parseDir(dirPath)
         dirBuf = Path(dirPath)
         react = ReactTS(str(dirBuf))
         bufISO=[]
+
+        react.isJS = isJS
 
         for fileName in filesInDir:
             fullPath = str(dirBuf / fileName)
@@ -1052,6 +1056,18 @@ class ConsoleRouts:
             dirFunc=ConsoleRouts._reactTypeScriptFromDir
         )
 
+
+    @staticmethod
+    def javaScriptFile(filePath, dirPath):
+        '''Компилируем файл(ы) языкового дерева в интеграцию для JS'''
+        ConsoleRouts.fileOrDir(
+            filePath=filePath,
+            dirPath=dirPath,
+            fileFunc=ConsoleRouts._reactTypeScriptFromFile,
+            dirFunc=ConsoleRouts._reactTypeScriptFromDir,
+            isJS=True
+        )
+
 ###########################################################
 
 if __name__ == '__main__':
@@ -1070,6 +1086,7 @@ if __name__ == '__main__':
     compiling.add_argument('--tree', action='store_true', help="Recompiling the language file(s)")
     compiling.add_argument('--routs', action='store_true', help="Generating a route file")
     compiling.add_argument('--reactTS', action='store_true', help="Compiling a file for React-integration with TypeScript")
+    compiling.add_argument('--JS', action='store_true', help="Compiling a file for integration with JavaScript")
 
     clone = consoleParser.add_argument_group('Working with cloning. Compare files and apply changes relative to the `reference`. Mandatory use [`--file` OR `--dir` ]  [`--clone` OR `--compare` ]')
     clone.add_argument('--clone', '-cl', action='store_true', help="Cloning mode")
@@ -1104,6 +1121,9 @@ if __name__ == '__main__':
 
         elif consoleARG.reactTS:#перекомпилируем файл(ы) для тайпскрипта
             ConsoleRouts.reactTypeScriptFile(filePath=consoleARG.file, dirPath=consoleARG.dir)
+
+        elif consoleARG.JS:#перекомпилируем файл(ы) для JS
+            ConsoleRouts.javaScriptFile(filePath=consoleARG.file, dirPath=consoleARG.dir)
 
         else:
             echo.error("Error! You must use one of the parameters", "[ --tree | --routs ]")
