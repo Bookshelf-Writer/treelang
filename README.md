@@ -71,22 +71,22 @@ python3 script.py --check --dir 'somedir'
 
 ##### Перекомпиляция конкретного файла. В случае нахождения недопустимых полей они будут удалены.
 ```bash
-python3 python3 script.py --compiling --tree --file 'somedir/langTreeFile.en.json' 
+python3 script.py --compiling --tree --file 'somedir/langTreeFile.en.json' 
 ```
 
 ##### Перекомпиляция всех файлов в директории.
 ```bash
-python3 python3 script.py --compiling --tree --dir 'somedir' 
+python3 script.py --compiling --tree --dir 'somedir' 
 ```
 
 ##### Создание файла карты по конкретному файлу.
 ```bash
-python3 python3 script.py --compiling --routs --file 'somedir/langTreeFile.en.json' 
+python3 script.py --compiling --routs --file 'somedir/langTreeFile.en.json' 
 ```
 
 ##### Создание файла карты используя языковые файлы в директории
 ```bash
-python3 python3 script.py --compiling --routs --dir 'somedir' 
+python3 script.py --compiling --routs --dir 'somedir' 
 ```
 
 ---
@@ -99,12 +99,12 @@ python3 python3 script.py --compiling --routs --dir 'somedir'
 
 ##### Проверка различий между двумя файлами
 ```bash
-python3 python3 script.py --compare --pattern 'somedir/langTreeFile.ru.json' --file 'somedir/langTreeFile.en.json' 
+python3 script.py --compare --pattern 'somedir/langTreeFile.ru.json' --file 'somedir/langTreeFile.en.json' 
 ```
 
 ##### Сравнение эталонного файла со всеми файлами в директории.
 ```bash
-python3 python3 script.py --compare --pattern 'somedir/langTreeFile.ru.json' --dir 'somedir' 
+python3 script.py --compare --pattern 'somedir/langTreeFile.ru.json' --dir 'somedir' 
 ```
 
 ---
@@ -117,12 +117,12 @@ python3 python3 script.py --compare --pattern 'somedir/langTreeFile.ru.json' --d
 
 ##### Перенос изменений из эталонного файла в другой, конкретный, файл
 ```bash
-python3 python3 script.py --clone --pattern 'somedir/langTreeFile.ru.json' --file 'somedir/langTreeFile.en.json' 
+python3 script.py --clone --pattern 'somedir/langTreeFile.ru.json' --file 'somedir/langTreeFile.en.json' 
 ```
 
 ##### Перенос изменений из эталонного файла во все файлы в директории.
 ```bash
-python3 python3 script.py --clone --pattern 'somedir/langTreeFile.ru.json' --dir 'somedir' 
+python3 script.py --clone --pattern 'somedir/langTreeFile.ru.json' --dir 'somedir' 
 ```
 
 ---
@@ -136,25 +136,25 @@ python3 python3 script.py --clone --pattern 'somedir/langTreeFile.ru.json' --dir
 
 ##### Поиск по вшитым языкам по имени. Вернет массив с объектами если есть совпадения.
 ```bash
-python3 python3 script.py --iso --name 'бело' 
+python3 script.py --iso --name 'бело' 
 ```
 
 ##### Поиск по вшитым языкам по коду. Вернет массив строк с кодами если есть совпадения.
 ```bash
-python3 python3 script.py --iso --code 'ru' --codeOnly
+python3 script.py --iso --code 'ru' --codeOnly
 ```
 
 ##### Генерация сжатого представления json-файла. Вернет bash64-строку.
 ```bash
-python3 python3 script.py --iso --fileJSON './someFile.json' 
+python3 script.py --iso --fileJSON './someFile.json' 
 ```
 
 #### Использования в реальных задачах
 
 ##### Обновление интеграции с React-TS
 ```bash
-python3 python3 script.py --clone --pattern 'somedir/langTreeFile.ru.json' --dir 'somedir' 
-python3 python3 script.py --compiling --reactTS --dir 'somedir' 
+python3 script.py --clone --pattern './treeLang/langTreeFile.ru.json' --dir './treeLang' 
+python3 script.py --compiling --reactTS --dir './treeLang' 
 ```
 - Все языковые файлы в `dir` приводятся к единой структуре, недостающие поля копируются из `pattern`
 - Создание (или обновление) файла `languages.ts` с встраиванием всех языковых файлов в `dir`

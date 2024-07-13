@@ -60,6 +60,8 @@ class ReactTS:
     _langObj = "interface LangObj {info: LangInfoObj; data: LangDataObj;}"
     _dataObjName = "LangDataObj"
 
+    isJS=False
+
     _dir = ""
 
     _fileMap = {}
@@ -78,14 +80,21 @@ class ReactTS:
 
     def createFile(self):
         '''Создание файла интеграции'''
-        filePath = Path(self._dir) / (DEF_FILE_ROUT_NAME+".ts")
+        if not self.isJS:
+            filePath = Path(self._dir) / (DEF_FILE_ROUT_NAME+".ts")
+        else:
+            filePath = Path(self._dir) / (DEF_FILE_ROUT_NAME+".js")
 
         if IS_SAFE:
             if os.path.exists(filePath):
                 echo.info(echo.pink("SafeMode"))
                 shutil.copy(filePath, str(filePath)+".old")
 
-        echo.info("Create React-integration with TypeScript file "+echo.orange(DEF_FILE_ROUT_NAME+".ts"))
+        if not self.isJS:
+            echo.info("Create React-integration with TypeScript file "+echo.orange(DEF_FILE_ROUT_NAME+".ts"))
+        else:
+            echo.info("Create integration with JavaScript file "+echo.orange(DEF_FILE_ROUT_NAME+".js"))
+
         with open(filePath, 'w', encoding="utf-8") as file:
             file.write("/* "+SAMPLE_TEXT+" */\n")#коментарий что сгенерировано автоматически
 
@@ -94,19 +103,23 @@ class ReactTS:
                 file.write("import fileLang"+code.upper()+" from './"+langFileName+"'\n")
             file.write("\n")
 
-            #интегрируем языковое дерево
-            file.write(self._infoObj+"\n")
-            file.write("interface "+self._dataObjName+" { "+self._generateStruct()+" }\n")
-            file.write(self._langObj+"\n")
-            file.write("interface LanguagesTreeObj {")
-            for code, _ in self._fileMap.items():
-                file.write(code+": LangObj; ")
-            file.write("}\n")
+            #интегрируем языковое дерево (структура)
+            if not self.isJS:
+                file.write(self._infoObj+"\n")
+                file.write("interface "+self._dataObjName+" { "+self._generateStruct()+" }\n")
+                file.write(self._langObj+"\n")
+                file.write("interface LanguagesTreeObj {")
+                for code, _ in self._fileMap.items():
+                    file.write(code+": LangObj; ")
+                file.write("}\n")
 
             file.write("\n")
 
             #Формирем глобальную структуру языкового дерева
-            file.write("export const Languages: LanguagesTreeObj = {\n")
+            if not self.isJS:
+                file.write("export const Languages: LanguagesTreeObj = {\n")
+            else:
+                file.write("export var LanguagesTreeObj = {\n")
             for code, imgData in self._fileMap.items():
                 file.write("\t"+code+": {\n")
                 if True:
