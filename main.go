@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/pmezard/go-difflib/difflib"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -202,17 +203,31 @@ func main() {
 
 	//
 
+	ff1 := "file.json"
+	ff2 := "file_f.json"
+
 	clearStruct(&json1)
-	saveSortedJSON(json1, "file.json")
+	saveSortedJSON(json1, ff1)
 
 	clearStruct(&json2)
-	saveSortedJSON(json2, "file_f.json")
-	m, err := diffLines("file.json", "file_f.json")
+	saveSortedJSON(json2, ff2)
+
+	rf1, _ := os.ReadFile(ff1)
+	rf2, _ := os.ReadFile(ff2)
+
+	diff := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(string(rf1)),
+		B:        difflib.SplitLines(string(rf2)),
+		FromFile: ff1,
+		ToFile:   ff2,
+		Context:  2,
+	}
+
+	diffText, err := difflib.GetUnifiedDiffString(diff)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Ошибка при генерации диффа:", err)
 		return
 	}
-	for line, text := range m {
-		fmt.Println(line, text)
-	}
+
+	fmt.Println(diffText)
 }
