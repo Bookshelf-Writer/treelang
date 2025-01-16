@@ -1,9 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
+	"sort"
+	"strings"
 )
 
 //go:generate bash ./_run/creator_const_Go.sh
@@ -42,6 +47,147 @@ func merge(def, data any) any {
 	}
 }
 
+func diffLines(file1, file2 string) (map[int]string, error) {
+	f1, err := os.Open(file1)
+	if err != nil {
+		return nil, err
+	}
+	defer f1.Close()
+
+	f2, err := os.Open(file2)
+	if err != nil {
+		return nil, err
+	}
+	defer f2.Close()
+	differences := make(map[int]string)
+
+	scanner1 := bufio.NewScanner(f1)
+	scanner2 := bufio.NewScanner(f2)
+
+	lineNumber := 1
+	for scanner1.Scan() && scanner2.Scan() {
+		line1 := scanner1.Text()
+		line2 := scanner2.Text()
+
+		if line1 != line2 {
+			differences[lineNumber] = strings.TrimSpace(line2)
+		}
+		lineNumber++
+	}
+
+	if err := scanner1.Err(); err != nil {
+		return nil, err
+	}
+	if err := scanner2.Err(); err != nil {
+		return nil, err
+	}
+
+	for scanner2.Scan() {
+		differences[lineNumber] = strings.TrimSpace(scanner2.Text())
+		lineNumber++
+	}
+
+	return differences, nil
+}
+
+func saveSortedJSON(data any, filename string) error {
+	tempMap := make(map[string]any)
+
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(bytes, &tempMap)
+
+	keys := make([]string, 0, len(tempMap))
+	for key := range tempMap {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	sortedMap := make(map[string]any)
+	for _, key := range keys {
+		sortedMap[key] = tempMap[key]
+	}
+
+	sortedJSON, err := json.MarshalIndent(sortedMap, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(sortedJSON)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// //
+
+// Функция очищает структуру, устанавливая полям значения по умолчанию
+func clearStruct(data any) {
+	val := reflect.ValueOf(data)
+	if val.Kind() != reflect.Ptr {
+		panic("clearStruct requires a pointer")
+	}
+
+	elem := val.Elem()
+	clearValue(elem)
+}
+
+// Функция рекурсивно очищает значения
+func clearValue(value reflect.Value) {
+	switch value.Kind() {
+
+	case reflect.Ptr:
+		if !value.IsNil() {
+			clearValue(value.Elem())
+		}
+
+	case reflect.Struct:
+		for i := 0; i < value.NumField(); i++ {
+			field := value.Field(i)
+			if field.CanSet() {
+				clearValue(field)
+			}
+		}
+
+	case reflect.Interface:
+		if !value.IsNil() {
+			elem := value.Elem()
+			clearValue(elem)
+			// value.Set(reflect.Zero(value.Type()))
+		}
+
+	case reflect.Map:
+		for _, key := range value.MapKeys() {
+			bufVal := value.MapIndex(key)
+
+			_, ok := bufVal.Interface().(string)
+			if ok {
+				value.SetMapIndex(key, reflect.Zero(reflect.TypeOf("")))
+			} else {
+				clearValue(bufVal)
+			}
+		}
+
+	default:
+		if !value.IsValid() || !value.CanSet() {
+			return
+		}
+		value.Set(reflect.Zero(value.Type()))
+	}
+}
+
+// //
+
 func main() {
 	data1, _ := ioutil.ReadFile(F1)
 	var json1 map[string]any
@@ -51,6 +197,22 @@ func main() {
 	json.Unmarshal(data2, &json2)
 
 	result := merge(json1, json2)
-	out, _ := json.MarshalIndent(result, "", "  ")
-	ioutil.WriteFile("file.json", out, os.ModePerm)
+
+	saveSortedJSON(result, "file.json")
+
+	//
+
+	clearStruct(&json1)
+	saveSortedJSON(json1, "file.json")
+
+	clearStruct(&json2)
+	saveSortedJSON(json2, "file_f.json")
+	m, err := diffLines("file.json", "file_f.json")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for line, text := range m {
+		fmt.Println(line, text)
+	}
 }
