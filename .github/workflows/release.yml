@@ -78,6 +78,17 @@ jobs:
           name: build-env
           path: .
 
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ runner.os == 'Windows' && 'C:\\go\\pkg\\mod' || '~/go/pkg/mod' }}
+            ${{ runner.os == 'Windows' && 'C:\\go\\bin' || '~/go/bin' }}
+          key: ${{ runner.os }}-go
+          restore-keys: |
+            ${{ runner.os }}-go
+      
+
       - name: Load environment variables
         run: |
           if [ -f build_env.txt ]; then
