@@ -35,8 +35,8 @@ jobs:
 
       - name: Run go generate
         run: |
-        go mod tidy
-        go generate
+          go mod tidy
+          go generate
 
       - name: Upload updated repository as artifact
         uses: actions/upload-artifact@v3
