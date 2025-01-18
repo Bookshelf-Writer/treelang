@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/hex"
+	"errors"
 	"golang.org/x/crypto/blake2b"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -47,6 +49,10 @@ func stringAdr(arr []bool) string {
 		}
 	}
 	return str
+}
+
+func paramErr(param string, err error) error {
+	return errors.New(cyan("--"+param) + ":\t" + err.Error())
 }
 
 // //
@@ -96,6 +102,41 @@ func CheckFilePath(filePath string) FilePathType {
 	}
 
 	return FilePathValid
+}
+
+func CheckPathCMD(val *string, param string) (FilePathType, error) {
+	if *val == "" {
+		return FilePathErr, errors.New("you must specify a file using " + cyan("--"+param))
+	}
+
+	path := CheckFilePath(*val)
+	if path != FilePathValid && path != FilePathIsDir && path != FilePathValidDir {
+		return path, paramErr(param, errors.New(path.String()))
+	}
+
+	abs, err := filepath.Abs(*val)
+	if err != nil {
+		return path, paramErr(param, err)
+	}
+
+	if path == FilePathValid {
+		ex := filepath.Ext(abs)
+		isOK := false
+
+		for _, name := range fileExtension {
+			if name == ex {
+				isOK = true
+				break
+			}
+		}
+
+		if !isOK {
+			return path, paramErr(param, errors.New("Invalid file extension. Must be: "+strings.Join(fileExtension, ", ")))
+		}
+	}
+
+	*val = abs
+	return path, nil
 }
 
 // //

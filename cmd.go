@@ -9,8 +9,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   GlobalName,
-	Short: magenta(GlobalName) + " — #####",
-	Long:  magenta(GlobalName) + " — #####",
+	Short: magenta(GlobalName) + " — console utility for working with language trees",
+	Long:  magenta(GlobalName) + " — This is a console utility that allows you to create, modify and analyze language trees. You can also generate ready-made files for different programming languages from language trees.",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Use " + magenta(GlobalName) + " " + cyan("help") + " for more information about a command.")

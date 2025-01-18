@@ -24,8 +24,13 @@ go build -o treelang.bin
 
 ---
 
+```bash
+./treelang.bin diff -h
+```
 
-
+```bash
+./treelang.bin diff --from treeLang/
+```
 
 ---
 
