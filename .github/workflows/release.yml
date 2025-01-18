@@ -9,8 +9,55 @@ on:
     types: [created]
 
 jobs:
+  generate:
+    name: "Generate and check tag"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go (1.22)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+
+      - name: Load Info from Build
+        run: |
+          nameBuild=$(./_run/scripts/sys.sh -n)
+          versionBuild=$(./_run/scripts/sys.sh -v)
+          
+          echo "BUILD_NAME=${nameBuild}" >> build_env.txt
+          echo "BUILD_VER=${versionBuild}" >> build_env.txt
+          
+          echo "NAME: $nameBuild"
+          echo "VER: $versionBuild"
+
+      - name: Check Tag
+        run: |
+          source build_env.txt
+          if [[ "${{ github.event.release.tag_name }}" != "${BUILD_VER}" ]]; then
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
+            echo "::error ::Incorrect release tag. Should match the [${BUILD_VER}]."
+            exit 1
+          fi
+
+      - name: Run go generate
+        run: go generate
+
+      - name: Upload environment variables artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-env
+          path: build_env.txt
+
   build:
-    name: "Build  [${{ matrix.os }}]"
+    name: "Build [${{ matrix.os }}]"
+    needs: generate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -19,62 +66,50 @@ jobs:
         go-version: [1.22]
     permissions:
       contents: write
-
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download build environment artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-env
+          path: .
+
+      - name: Load environment variables
+        run: |
+          if [ -f build_env.txt ]; then
+            cat build_env.txt >> $GITHUB_ENV
+          else
+            echo "build_env.txt not found"
+            exit 1
+          fi
+        shell: bash
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-      ########################################################################################################################
 
-      - name: Load Info from Build
-        if: ${{ matrix.os != 'windows-latest' }}
+      - name: Run build steps
         run: |
-          nameBuild=$(./_run/scripts/sys.sh -n)
-          versionBuild=$(./_run/scripts/sys.sh -v)
-
-          echo "BUILD_NAME=$nameBuild" >> $GITHUB_ENV
-          echo "BUILD_VER=$versionBuild" >> $GITHUB_ENV
-          
-          echo "NAME: $nameBuild"
-          echo "VER: $versionBuild"
-
-      - name: Check Tag [linux]
-        if: ${{ matrix.os != 'windows-latest'}}
-        run: |
-          if [[ "${{ github.event.release.tag_name }}" != "${{ env.BUILD_VER }}" ]]; then
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
-          
-            echo "::error ::Incorrect release tag. Should match the [${{ env.BUILD_VER }}]."
-            exit 1
-          fi
-
-      ########################################################################################################################
-
-      - name: Run build
-        run: |
-          go generate
           go mod tidy
           go build -ldflags="-s -w" -o buildGo
 
-      - name: Set [win] namespace
+      - name: Set namespace for Windows
         if: ${{ matrix.os == 'windows-latest' }}
-        run: echo "FILE_EX=exe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        run: echo "FILE_EX=exe" >> $GITHUB_ENV
         shell: pwsh
 
-      - name: Set [linux] namespace
+      - name: Set namespace for Linux
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           echo "FILE_EX=bin" >> $GITHUB_ENV
-          chmod +x buildGo        
+          chmod +x buildGo
 
-      - name: Save build
+      - name: Save build as release asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -84,18 +119,41 @@ jobs:
           asset_name: "treelang.${{ env.FILE_EX }}"
           asset_content_type: application/octet-stream
 
-   ########################################################################################################################
+  push-version:
+    name: "Push new version"
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Push new version [linux]
-        if: ${{ matrix.os == 'ubuntu-latest'}}
+      - name: Download build environment artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-env
+          path: .
+
+      - name: Load environment variables
+        run: |
+          if [ -f build_env.txt ]; then
+            cat build_env.txt >> $GITHUB_ENV
+          else
+            echo "build_env.txt not found"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Push new version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           new_version=$(./_run/scripts/sys.sh --increment --minor)
-
+          
           git add ./_run/values/ver.txt
-
-          git commit -m "actions [$new_version] "$'\n'"Build: [${{ env.BUILD_VER }}] >> [$new_version]"
+          git commit -m "actions [$new_version] "$'\n'"Build: [${BUILD_VER}] >> [$new_version]"
           git push origin HEAD:main
