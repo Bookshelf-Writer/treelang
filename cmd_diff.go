@@ -56,9 +56,10 @@ var diffCmd = &cobra.Command{
 func init() {
 	diffCmd.Flags().StringVar(&CmdMasterFile, "master", "", "######")
 	diffCmd.Flags().StringVar(&CmdSlaveFile, "slave", "", "######")
-
 	diffCmd.Flags().StringVar(&CmdFromFilePath, "from", "", "######")
 	diffCmd.Flags().StringVar(&CmdToFilePath, "to", "", "######")
+
+	diffCmd.Flags().StringVar(&CmdMode, "mode", "short", "Output mode. By default, outputs in shortened format. [all|short]")
 
 	rootCmd.AddCommand(diffCmd)
 }
