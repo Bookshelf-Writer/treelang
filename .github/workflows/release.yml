@@ -89,6 +89,7 @@ jobs:
           path: |
             ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\pkg\mod' || '~/go/pkg/mod' }}
             ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\bin' || '~/go/bin' }}
+            go.sum
           key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
           restore-keys: ${{ runner.os }}-go
 
