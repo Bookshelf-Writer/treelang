@@ -59,9 +59,8 @@ jobs:
           path: |
             ~/go/pkg/mod
             ~/go/bin
-          key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
           restore-keys: ${{ runner.os }}-go
-    
 
       - name: Set up Go
         uses: actions/setup-go@v5
