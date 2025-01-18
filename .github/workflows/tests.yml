@@ -3,8 +3,6 @@ name: Go Tests and Benchmarks
 on:
   pull_request:
     paths-ignore:
-      - '*.yml'
-      - 'const.go'
       - '*.txt'
       - '*.md'
       - '*.pdf'
@@ -13,22 +11,49 @@ on:
       - '*'
 
 jobs:
+  generate:
+    name: "Generate Files"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+
+      - name: Install dependencies and generate files
+        run: |
+          go generate
+          go mod tidy
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-files
+          path: |
+            .
+          retention-days: 1
+
   test:
-    name: "Test  [${{ matrix.os }}]"
+    name: "Test and Benchmark [${{ matrix.os }} - Go ${{ matrix.go-version }}]"
+    needs: generate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         go-version: [1.22]
-    permissions:
-      contents: write
-
-      ########################################################################################################################
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download generated files
+        uses: actions/download-artifact@v3
+        with:
+          name: generated-files
+          path: .
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -44,11 +69,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: Install dependencies
-        run: |
-          go generate
-          go mod tidy
 
       - name: Run tests
         run: |
