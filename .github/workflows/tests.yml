@@ -56,8 +56,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/go/pkg/mod
-            ~/go/bin
+            ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\pkg\mod' || '~/go/pkg/mod' }}
+            ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\bin' || '~/go/bin' }}
           key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
           restore-keys: ${{ runner.os }}-go
 
