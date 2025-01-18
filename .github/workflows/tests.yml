@@ -3,7 +3,6 @@ name: Go Tests and Benchmarks
 on:
   pull_request:
     paths-ignore:
-      - '*.yml'
       - '*.txt'
       - '*.md'
       - '*.pdf'
