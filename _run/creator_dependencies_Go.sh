@@ -11,7 +11,6 @@ package_name="main"
 run_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root_path=$(cd "$run_dir/.." && pwd)
 
-
 file_go_mod="$root_path/go.mod"
 file_const="$root_path/$dir_path$file_name"
 
@@ -27,7 +26,7 @@ fi
     echo ""
     echo "package $package_name"
     echo ""
-    echo "////////////////////////////////////////////////////////////"
+    echo "// // // // // // // // // // // // // // // // // //"
     echo ""
     echo "var GlobalDependenciesMap = map[string]string{"
 

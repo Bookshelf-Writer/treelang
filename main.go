@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 //go:generate bash ./_run/creator_const_Go.sh
@@ -19,10 +19,10 @@ const (
 // //
 
 func main() {
-	data1, _ := ioutil.ReadFile(F1)
+	data1, _ := os.ReadFile(F1)
 	var json1 map[string]any
 	json.Unmarshal(data1, &json1)
-	data2, _ := ioutil.ReadFile(F2)
+	data2, _ := os.ReadFile(F2)
 	var json2 map[string]any
 	json.Unmarshal(data2, &json2)
 
@@ -31,7 +31,7 @@ func main() {
 
 	//
 
-	arr, err := diff(json1, json2)
+	arr, err := diffObj(json1, json2)
 	if err != nil {
 		fmt.Println(err)
 		return

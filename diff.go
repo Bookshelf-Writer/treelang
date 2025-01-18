@@ -1,70 +1,29 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/pmezard/go-difflib/difflib"
 	"os"
-	"reflect"
-	"sort"
 	"strings"
-	"time"
 )
 
 // // // // // // // // // // // // // // // // // //
 
-func _saveSortedJSON(data any) string {
-	tempMap := make(map[string]any)
-
-	bytes, _ := json.Marshal(data)
-	json.Unmarshal(bytes, &tempMap)
-
-	keys := make([]string, 0, len(tempMap))
-	for key := range tempMap {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	sortedMap := make(map[string]any)
-	for _, key := range keys {
-		sortedMap[key] = tempMap[key]
+func diffFile(filepathA, filepathB string) ([]string, error) {
+	rf1, err := os.ReadFile(filepathA)
+	if err != nil {
+		return nil, err
 	}
 
-	sortedJSON, _ := json.MarshalIndent(sortedMap, "", "  ")
-
-	tempFile, _ := os.CreateTemp(os.TempDir(), fmt.Sprintf("%d_json_temp", time.Now().Nanosecond()))
-	defer tempFile.Close()
-
-	tempFile.Write(sortedJSON)
-
-	return tempFile.Name()
-}
-
-func deepCopy(src any) any {
-	srcVal := reflect.ValueOf(src)
-	copiedVal := reflect.New(srcVal.Type()).Elem()
-	copiedVal.Set(srcVal)
-	return copiedVal.Interface()
-}
-
-func diff(def, data any) ([]string, error) {
-	defValue := deepCopy(def)
-	dataValue := deepCopy(data)
-
-	clearObj(&defValue)
-	file1 := _saveSortedJSON(defValue)
-
-	clearObj(&dataValue)
-	file2 := _saveSortedJSON(dataValue)
-
-	rf1, _ := os.ReadFile(file1)
-	rf2, _ := os.ReadFile(file2)
+	rf2, err := os.ReadFile(filepathB)
+	if err != nil {
+		return nil, err
+	}
 
 	dd := difflib.UnifiedDiff{
 		A:        difflib.SplitLines(string(rf2)),
 		B:        difflib.SplitLines(string(rf1)),
-		FromFile: file1,
-		ToFile:   file2,
+		FromFile: filepathA,
+		ToFile:   filepathB,
 		Context:  1,
 	}
 	diffText, err := difflib.GetUnifiedDiffString(dd)
@@ -77,10 +36,32 @@ func diff(def, data any) ([]string, error) {
 	bufArr = bufArr[1:]
 
 	for x := 0; x < len(bufArr); x = x + 2 {
-		txt := bufArr[x+1]
-		txt = strings.Replace(txt, "\"\"", "...", -1)
-		finalArr = append(finalArr, txt)
+		finalArr = append(finalArr, bufArr[x+1])
 	}
 
 	return finalArr, nil
+}
+
+func diffObj(def, data any) ([]string, error) {
+	defValue := _deepCopy(def)
+	dataValue := _deepCopy(data)
+
+	clearObj(&defValue)
+	file1 := saveTempFileJSON(defValue)
+
+	clearObj(&dataValue)
+	file2 := saveTempFileJSON(dataValue)
+
+	arr, err := diffFile(file1, file2)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(arr); i++ {
+		txt := arr[i]
+		txt = strings.Replace(txt, "\"\"", "...", -1)
+		arr[i] = txt
+	}
+
+	return arr, nil
 }
