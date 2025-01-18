@@ -27,7 +27,7 @@ jobs:
         run: go generate
 
       - name: Upload updated repository as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-repo
           path: .
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Download updated repository
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: updated-repo
           path: .
