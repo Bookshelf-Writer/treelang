@@ -59,6 +59,7 @@ jobs:
 
       - name: Run build
         run: |
+          go generate
           go mod tidy
           go build -ldflags="-s -w" -o buildGo
 
