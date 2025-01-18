@@ -13,7 +13,7 @@ import (
 
 var diffCmd = &cobra.Command{
 	Use:   "diff",
-	Short: "сравнение файлов",
+	Short: "displaying information about files and comparing them",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var fromPath, masterPath, slavePath FilePathType
 		var err error
@@ -218,9 +218,9 @@ func diffMasterToDir(master, path string) error {
 // // // // // //
 
 func init() {
-	diffCmd.Flags().StringVar(&CmdMasterFile, "master", "", "######")
-	diffCmd.Flags().StringVar(&CmdSlaveFile, "slave", "", "######")
-	diffCmd.Flags().StringVar(&CmdFromFilePath, "from", "", "######")
+	diffCmd.Flags().StringVar(&CmdFromFilePath, "from", "", "the root folder in which the language tree files are located")
+	diffCmd.Flags().StringVar(&CmdMasterFile, "master", "", "main file to be compared with")
+	diffCmd.Flags().StringVar(&CmdSlaveFile, "slave", "", "specific file to compare with the main file")
 
 	diffCmd.Flags().StringVar(&CmdMode, "mode", "short", "Output mode. By default, outputs in shortened format. [all|short]")
 	CmdFull = diffCmd.Flags().Bool("full", false, "full file comparison, including key values")
