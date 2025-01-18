@@ -14,8 +14,6 @@ jobs:
   generate:
     name: "Generate"
     runs-on: ubuntu-latest
-    outputs:
-      artifact-path: generated-files
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,18 +23,17 @@ jobs:
         with:
           go-version: 1.22
 
-      - name: Generate data
-        run: |
-          go generate
+      - name: Run go generate
+        run: go generate
 
-      - name: Upload generated files
+      - name: Upload updated repository as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: generated-files
+          name: updated-repo
           path: .
 
   test:
-    name: "Test  [${{ matrix.os }}] with Go ${{ matrix.go-version }}"
+    name: "Test and Benchmark [${{ matrix.os }}]"
     needs: generate
     runs-on: ${{ matrix.os }}
     strategy:
@@ -47,13 +44,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download generated files
+      - name: Download updated repository
         uses: actions/download-artifact@v3
         with:
-          name: generated-files
+          name: updated-repo
           path: .
 
       - name: Set up Go
@@ -65,22 +59,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/go/pkg/mod
-            ~/go/bin
+            ${{ runner.os == 'Windows' && format('{0}\\go\\pkg\\mod', env.USERPROFILE) || '~/go/pkg/mod' }}
+            ${{ runner.os == 'Windows' && format('{0}\\go\\bin', env.USERPROFILE) || '~/go/bin' }}
           key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
 
       - name: Install dependencies
-        run: |
-          go mod tidy
+        run: go mod tidy
 
       - name: Run tests
-        run: |
-          echo "Running tests..."
-          go test -v ./... || exit 1
+        run: go test -v ./... || exit 1
 
       - name: Run benchmarks
-        run: |
-          echo "Running benchmarks..."
-          go test -bench . -v ./... || exit 1
+        run: go test -bench . -v ./... || exit 1
