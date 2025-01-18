@@ -3,6 +3,7 @@ name: Go Tests and Benchmarks
 on:
   pull_request:
     paths-ignore:
+      - '*.yml'
       - '*.txt'
       - '*.md'
       - '*.pdf'
@@ -18,25 +19,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ runner.os == 'Windows' && format('{0}\\go\\pkg\\mod', env.USERPROFILE) || '~/go/pkg/mod' }}
-            ${{ runner.os == 'Windows' && format('{0}\\go\\bin', env.USERPROFILE) || '~/go/bin' }}
-          key: ${{ runner.os }}-go
-          restore-keys: |
-            ${{ runner.os }}-go
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
 
       - name: Run go generate
-        run: |
-          go mod tidy
-          go generate
+        run: go generate
 
       - name: Upload updated repository as artifact
         uses: actions/upload-artifact@v3
