@@ -52,6 +52,11 @@ jobs:
           name: updated-repo
           path: .
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
       - name: Cache Go modules
         uses: actions/cache@v4
         with:
@@ -60,11 +65,6 @@ jobs:
             ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\bin' || '~/go/bin' }}
           key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
           restore-keys: ${{ runner.os }}-go
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ matrix.go-version }}
 
       - name: Install dependencies
         run: go mod tidy
