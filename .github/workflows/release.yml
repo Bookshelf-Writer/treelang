@@ -78,12 +78,26 @@ jobs:
           name: build-env
           path: .
 
+      - name: Create Go directories (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p ~/go/pkg/mod
+          mkdir -p ~/go/bin
+
+      - name: Create Go directories (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir "%USERPROFILE%\go\pkg\mod"
+          mkdir "%USERPROFILE%\go\bin"
+        shell: cmd
+
+
       - name: Cache Go modules
         uses: actions/cache@v4
         with:
           path: |
-            ${{ runner.os == 'Windows' && 'C:\\go\\pkg\\mod' || '~/go/pkg/mod' }}
-            ${{ runner.os == 'Windows' && 'C:\\go\\bin' || '~/go/bin' }}
+            ${{ runner.os == 'Windows' && format('{0}\go\pkg\mod', env.USERPROFILE) || '~/go/pkg/mod' }}
+            ${{ runner.os == 'Windows' && format('{0}\go\bin', env.USERPROFILE) || '~/go/bin' }}
           key: ${{ runner.os }}-go
           restore-keys: |
             ${{ runner.os }}-go
