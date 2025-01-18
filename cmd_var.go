@@ -11,5 +11,6 @@ var (
 	CmdToFilePath   string
 
 	CmdMode    string // [all|short]
+	CmdFull    *bool
 	CmdPackage string
 )

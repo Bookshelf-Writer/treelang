@@ -32,6 +32,26 @@ go build -o treelang.bin
 ./treelang.bin diff --from treeLang/
 ```
 
+```bash
+./treelang.bin diff --from treeLang/ --mode all
+```
+
+```bash
+./treelang.bin diff --from treeLang/ --master treeLang/en.json
+```
+
+```bash
+./treelang.bin diff --from treeLang/ --master treeLang/en.json --full
+```
+
+```bash
+./treelang.bin diff --master treeLang/en.json --slave treeLang/pl.json
+```
+
+```bash
+./treelang.bin diff --master treeLang/en.json --slave treeLang/pl.json --full
+```
+
 ---
 
 ---

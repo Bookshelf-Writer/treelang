@@ -61,5 +61,5 @@ func ReadFile(adr string) (*LangObj, error) {
 		return parseJson(adr)
 
 	}
-	return nil, errors.New("unexpected file type")
+	return nil, errors.New("unexpected file type: " + red(ex))
 }
