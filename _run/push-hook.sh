@@ -9,6 +9,11 @@ root_path=$(cd "$run_dir/.." && pwd)
 
 #############################################################################
 
+OLD_VER=$(bash "$script_dir/sys.sh" -v)
+VERSION=$(bash "$script_dir/sys.sh" -i -pa)
+
+echo "Updated patch-ver:" "$OLD_VER >> $VERSION"
+
 go mod tidy
 #go mod vendor
 

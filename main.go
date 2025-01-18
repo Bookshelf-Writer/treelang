@@ -36,6 +36,8 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	fmt.Println(len(arr))
 	for _, txt := range arr {
 		fmt.Println("\n", txt)
 	}
