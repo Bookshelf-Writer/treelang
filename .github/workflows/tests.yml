@@ -57,9 +57,9 @@ jobs:
           path: |
             ${{ runner.os == 'Windows' && format('{0}\\go\\pkg\\mod', env.USERPROFILE) || '~/go/pkg/mod' }}
             ${{ runner.os == 'Windows' && format('{0}\\go\\bin', env.USERPROFILE) || '~/go/bin' }}
-          key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
+          key: ${{ runner.os }}-go
           restore-keys: |
-            ${{ runner.os }}-go-
+            ${{ runner.os }}-go
 
       - name: Set up Go
         uses: actions/setup-go@v5
