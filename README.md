@@ -4,9 +4,28 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Bookshelf-Writer/TreeOfLanguages?color=green)
 ![GitHub repo size](https://img.shields.io/github/repo-size/Bookshelf-Writer/TreeOfLanguages)
 
-## Скрипт для работы с языковыми деревьями.
+## Script for working with language trees
 
-Перепись на Goland
+```bash
+go build -o treelang.bin
+```
+
+```bash
+./treelang.bin
+```
+
+```bash
+./treelang.bin --help
+```
+
+```bash
+./treelang.bin info
+```
+
+---
+
+
+
 
 ---
 
