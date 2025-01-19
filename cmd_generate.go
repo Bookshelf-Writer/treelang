@@ -5,7 +5,6 @@ import (
 	"fmt"
 	generator "github.com/Bookshelf-Writer/SimpleGenerator"
 	"github.com/spf13/cobra"
-	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -16,7 +15,7 @@ var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "generating files from a tree",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var fromPath, masterPath, slavePath, toPath FilePathType
+		var fromPath, masterPath, toPath FilePathType
 		var err error
 
 		if CmdFromFilePath != "" {
@@ -26,9 +25,12 @@ var generateCmd = &cobra.Command{
 			}
 		}
 		if CmdToFilePath != "" {
-			toPath, err = CheckPathCMD(&CmdToFilePath, "from")
+			toPath, err = CheckPathCMD(&CmdToFilePath, "to")
 			if err != nil {
 				return err
+			}
+			if toPath != FilePathIsDir {
+				return paramErr("to", errors.New("should only point to a directory"))
 			}
 		}
 		if CmdMasterFile != "" {
@@ -40,25 +42,109 @@ var generateCmd = &cobra.Command{
 				return paramErr("master", errors.New("the path should only point to an existing file"))
 			}
 		}
-		if CmdSlaveFile != "" {
-			slavePath, err = CheckPathCMD(&CmdSlaveFile, "slave")
-			if err != nil {
-				return err
+
+		if fromPath == FilePathUnknown {
+			return paramErr("from", errors.New("this parameter is required"))
+		}
+		if toPath == FilePathUnknown {
+			return paramErr("to", errors.New("this parameter is required"))
+		}
+
+		if fromPath == FilePathIsDir {
+			if masterPath == FilePathUnknown {
+				return paramErr("master", errors.New("this parameter is required"))
 			}
-			if slavePath != FilePathValid {
-				return paramErr("slave", errors.New("the path should only point to an existing file"))
+		}
+		if fromPath == FilePathValid && CmdMasterFile == "" {
+			CmdMasterFile = CmdFromFilePath
+			masterPath = FilePathValid
+		}
+
+		if fromPath != FilePathValid && fromPath != FilePathIsDir {
+			return paramErr("from", errors.New("error with parameter. must point to a file or folder"))
+		}
+		if masterPath != FilePathValid {
+			return paramErr("master", errors.New("error with parameter. must point to a file"))
+		}
+
+		// //
+
+		errFile := errors.New("the specified master-file is not a valid language file")
+		obj, err := ReadFile(CmdMasterFile)
+		if err != nil {
+			return errFile
+		}
+		if obj == nil {
+			return errFile
+		}
+		if obj.Data == nil || obj.Info == nil {
+			return errFile
+		}
+		if obj.Info.Name == nil {
+			return errFile
+		}
+
+		// //
+
+		if !*CmdJson && !*CmdYml && CmdPackage == "" {
+			return fmt.Errorf("generation type is not specified. Select %s, %s or enter %s", cyan("--yml"), cyan("--json"), cyan("----go-package"))
+		}
+
+		// //
+
+		if *CmdJson {
+			if *CmdMap {
+				return writeJsonMap(CmdMasterFile, CmdToFilePath)
+			} else {
+				return writeJsonData(CmdMasterFile, CmdToFilePath)
 			}
 		}
 
-		fmt.Println(fromPath, masterPath, slavePath, toPath)
+		if *CmdYml {
+			if *CmdMap {
+				return writeYmlMap(CmdMasterFile, CmdToFilePath)
+			} else {
+				return writeYmlData(CmdMasterFile, CmdToFilePath)
+			}
+		}
 
-		writeStructGo(filepath.Join(CmdFromFilePath, "en.json"), "main")
+		if CmdPackage != "" {
+			if *CmdMap {
+				return writeGoMap(CmdMasterFile, CmdToFilePath, CmdPackage)
+			} else {
+				return writeGoData(CmdMasterFile, CmdToFilePath, CmdPackage)
+			}
+		}
 
-		return nil
+		return errors.New("Unexpected termination of context")
 	},
 }
 
 // // // // // //
+
+func writeJsonData(fromFilePath, toDir string) error {
+	fmt.Println("Generating json data")
+	return nil
+}
+
+func writeJsonMap(fromFilePath, toDir string) error {
+	fmt.Println("Generating json map")
+	return nil
+}
+
+// //
+
+func writeYmlData(fromFilePath, toDir string) error {
+	fmt.Println("Generating yaml data")
+	return nil
+}
+
+func writeYmlMap(fromFilePath, toDir string) error {
+	fmt.Println("Generating yaml map")
+	return nil
+}
+
+// //
 
 func prepareStructMap(m map[string]any) map[string]string {
 	result := make(map[string]string)
@@ -122,10 +208,10 @@ func structMap(data map[string]any) map[string]map[string][]string {
 	return kkk
 }
 
-func writeStructGo(fromFilePath, packageName string) error {
-	goGen := generator.NewFilePathName(filepath.Dir(fromFilePath), packageName)
+func writeGoStruct(fromFilePath, toDir, packageName string) error {
+	goGen := generator.NewFilePathName(toDir, packageName)
 	types := func(name, jsonName string) generator.GeneratorTypeObj {
-		return generator.GeneratorTypeObj{Types: goGen.NewType(name), Tags: map[string]string{"json": jsonName, "xml": jsonName, "yaml": jsonName}}
+		return generator.GeneratorTypeObj{Types: goGen.NewType(name), Tags: map[string]string{"json": jsonName, "yaml": jsonName}}
 	}
 
 	goGen.NewImport("bytes", "")
@@ -210,14 +296,27 @@ func writeStructGo(fromFilePath, packageName string) error {
 
 	// //
 
-	err = goGen.Save("treelang_struct.gen.go")
+	fileName := "treelang_struct.gen.go"
+	err = goGen.Save(fileName)
 	if err == nil {
 		fmt.Printf("The file-struct was created successfully. \n\tDir: %s \n\tFile: %s\n",
-			cyan(filepath.Dir(fromFilePath)),
-			green("treelang_struct.gen.go"),
+			cyan(toDir),
+			green(fileName),
 		)
 	}
 	return err
+}
+
+//
+
+func writeGoData(fromFilePath, toDir, packageName string) error {
+	fmt.Println("writeGoData", fromFilePath, toDir, packageName)
+	return nil
+}
+
+func writeGoMap(fromFilePath, toDir, packageName string) error {
+	fmt.Println("writeGoMap", fromFilePath, toDir, packageName)
+	return nil
 }
 
 // // // // // //
@@ -225,16 +324,12 @@ func writeStructGo(fromFilePath, packageName string) error {
 func init() {
 	generateCmd.Flags().StringVar(&CmdFromFilePath, "from", "", "####")
 	generateCmd.Flags().StringVar(&CmdToFilePath, "to", "", "####")
-
 	generateCmd.Flags().StringVar(&CmdMasterFile, "master", "", "#####")
-	generateCmd.Flags().StringVar(&CmdSlaveFile, "slave", "", "#####")
 
 	generateCmd.Flags().StringVar(&CmdPackage, "go-package", "", "#####")
-	CmdJson = diffCmd.Flags().Bool("json", false, "######")
-	CmdYml = diffCmd.Flags().Bool("yml", false, "######")
-
-	CmdMap = diffCmd.Flags().Bool("map", false, "######")
-	CmdLangs = diffCmd.Flags().Bool("langs", false, "######")
+	CmdJson = generateCmd.Flags().Bool("json", false, "######")
+	CmdYml = generateCmd.Flags().Bool("yml", false, "######")
+	CmdMap = generateCmd.Flags().Bool("map", false, "######")
 
 	rootCmd.AddCommand(generateCmd)
 }
