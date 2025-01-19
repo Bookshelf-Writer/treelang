@@ -54,6 +54,16 @@ go build -o treelang.bin
 
 ---
 
+```bash
+./treelang.bin generate -h
+```
+
+```bash
+./treelang.bin generate --from treeLang/
+```
+
+---
+
 ---
 
 ### Mirrors

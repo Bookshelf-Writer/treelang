@@ -166,9 +166,9 @@ func diffMasterToSlave(master, slave string, pad int) error {
 	}
 
 	if len(arr) == 0 {
-		fmt.Printf("No differences between %s and %s\n", green(filepath.Base(master)), magenta(filepath.Base(master)))
+		fmt.Printf("No differences between %s and %s\n", green(filepath.Base(master)), magenta(filepath.Base(slave)))
 	} else {
-		fmt.Printf("%s >> %s\n", green(filepath.Base(master)), magenta(filepath.Base(master)))
+		fmt.Printf("%s >> %s\n", green(filepath.Base(master)), magenta(filepath.Base(slave)))
 	}
 
 	for _, txt := range arr {

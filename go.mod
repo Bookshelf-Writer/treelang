@@ -3,6 +3,7 @@ module TreeOfLanguages
 go 1.22
 
 require (
+	github.com/Bookshelf-Writer/SimpleGenerator v0.6.1
 	github.com/fatih/color v1.18.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/pmezard/go-difflib v1.0.0

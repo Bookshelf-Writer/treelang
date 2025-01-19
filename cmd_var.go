@@ -10,7 +10,10 @@ var (
 	CmdFromFilePath string
 	CmdToFilePath   string
 
-	CmdMode    string // [all|short]
-	CmdFull    *bool
-	CmdPackage string
+	CmdMode string // [all|short]
+	CmdFull *bool
+
+	CmdPackage       string
+	CmdJson, CmdYml  *bool
+	CmdMap, CmdLangs *bool
 )
