@@ -5,6 +5,7 @@ import (
 	"fmt"
 	generator "github.com/Bookshelf-Writer/SimpleGenerator"
 	"github.com/spf13/cobra"
+	"path"
 	"reflect"
 	"strings"
 )
@@ -55,13 +56,15 @@ var generateCmd = &cobra.Command{
 				return paramErr("master", errors.New("this parameter is required"))
 			}
 		}
-		if fromPath == FilePathValid && CmdMasterFile == "" {
-			CmdMasterFile = CmdFromFilePath
-			masterPath = FilePathValid
-		}
-
 		if fromPath != FilePathValid && fromPath != FilePathIsDir {
 			return paramErr("from", errors.New("error with parameter. must point to a file or folder"))
+		}
+		if fromPath == FilePathValid {
+			if CmdMasterFile == "" {
+				CmdMasterFile = CmdFromFilePath
+				masterPath = FilePathValid
+			}
+			CmdFromFilePath = path.Dir(CmdFromFilePath)
 		}
 		if masterPath != FilePathValid {
 			return paramErr("master", errors.New("error with parameter. must point to a file"))
@@ -94,25 +97,25 @@ var generateCmd = &cobra.Command{
 
 		if *CmdJson {
 			if *CmdMap {
-				return writeJsonMap(CmdMasterFile, CmdToFilePath)
+				return writeJsonMap(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
 			} else {
-				return writeJsonData(CmdMasterFile, CmdToFilePath)
+				return writeJsonData(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
 			}
 		}
 
 		if *CmdYml {
 			if *CmdMap {
-				return writeYmlMap(CmdMasterFile, CmdToFilePath)
+				return writeYmlMap(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
 			} else {
-				return writeYmlData(CmdMasterFile, CmdToFilePath)
+				return writeYmlData(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
 			}
 		}
 
 		if CmdPackage != "" {
 			if *CmdMap {
-				return writeGoMap(CmdMasterFile, CmdToFilePath, CmdPackage)
+				return writeGoMap(CmdMasterFile, CmdFromFilePath, CmdToFilePath, CmdPackage)
 			} else {
-				return writeGoData(CmdMasterFile, CmdToFilePath, CmdPackage)
+				return writeGoData(CmdMasterFile, CmdFromFilePath, CmdToFilePath, CmdPackage)
 			}
 		}
 
@@ -122,24 +125,24 @@ var generateCmd = &cobra.Command{
 
 // // // // // //
 
-func writeJsonData(fromFilePath, toDir string) error {
+func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
 	fmt.Println("Generating json data")
 	return nil
 }
 
-func writeJsonMap(fromFilePath, toDir string) error {
+func writeJsonMap(fromFilePath, fromReadDir, toDir string) error {
 	fmt.Println("Generating json map")
 	return nil
 }
 
 // //
 
-func writeYmlData(fromFilePath, toDir string) error {
+func writeYmlData(fromFilePath, fromReadDir, toDir string) error {
 	fmt.Println("Generating yaml data")
 	return nil
 }
 
-func writeYmlMap(fromFilePath, toDir string) error {
+func writeYmlMap(fromFilePath, fromReadDir, toDir string) error {
 	fmt.Println("Generating yaml map")
 	return nil
 }
@@ -309,12 +312,12 @@ func writeGoStruct(fromFilePath, toDir, packageName string) error {
 
 //
 
-func writeGoData(fromFilePath, toDir, packageName string) error {
+func writeGoData(fromFilePath, fromReadDir, toDir, packageName string) error {
 	fmt.Println("writeGoData", fromFilePath, toDir, packageName)
 	return nil
 }
 
-func writeGoMap(fromFilePath, toDir, packageName string) error {
+func writeGoMap(fromFilePath, fromReadDir, toDir, packageName string) error {
 	fmt.Println("writeGoMap", fromFilePath, toDir, packageName)
 	return nil
 }
