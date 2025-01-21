@@ -99,7 +99,7 @@ var generateCmd = &cobra.Command{
 
 		if *CmdJson {
 			if *CmdMap {
-				return writeJsonMap(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
+				return writeJsonMap(CmdFromFilePath, CmdToFilePath)
 			} else {
 				return writeJsonData(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
 			}
@@ -107,7 +107,7 @@ var generateCmd = &cobra.Command{
 
 		if *CmdYml {
 			if *CmdMap {
-				return writeYmlMap(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
+				return writeYmlMap(CmdFromFilePath, CmdToFilePath)
 			} else {
 				return writeYmlData(CmdMasterFile, CmdFromFilePath, CmdToFilePath)
 			}
@@ -115,7 +115,7 @@ var generateCmd = &cobra.Command{
 
 		if CmdPackage != "" {
 			if *CmdMap {
-				return writeGoMap(CmdMasterFile, CmdFromFilePath, CmdToFilePath, CmdPackage)
+				return writeGoMap(CmdFromFilePath, CmdToFilePath, CmdPackage)
 			} else {
 				return writeGoData(CmdMasterFile, CmdFromFilePath, CmdToFilePath, CmdPackage)
 			}
@@ -164,9 +164,32 @@ func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
 	return nil
 }
 
-func writeJsonMap(fromFilePath, fromReadDir, toDir string) error {
-	fmt.Println("Generating json map")
-	return nil
+func writeJsonMap(fromReadDir, toDir string) error {
+	files, err := os.ReadDir(fromReadDir)
+	if err != nil {
+		return err
+	}
+
+	arr := make([]*LangInfoObj, 0)
+	for _, file := range files {
+		if !file.IsDir() {
+			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
+			if err != nil {
+				continue
+			}
+
+			if obj.Info != nil && obj.Data != nil {
+				arr = append(arr, obj.Info)
+			}
+		}
+	}
+
+	err = createMapJSON(arr, toDir)
+	if err == nil {
+		fmt.Printf("Created: MAP\n")
+	}
+
+	return err
 }
 
 // //
@@ -208,9 +231,32 @@ func writeYmlData(fromFilePath, fromReadDir, toDir string) error {
 	return nil
 }
 
-func writeYmlMap(fromFilePath, fromReadDir, toDir string) error {
-	fmt.Println("Generating yaml map")
-	return nil
+func writeYmlMap(fromReadDir, toDir string) error {
+	files, err := os.ReadDir(fromReadDir)
+	if err != nil {
+		return err
+	}
+
+	arr := make([]*LangInfoObj, 0)
+	for _, file := range files {
+		if !file.IsDir() {
+			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
+			if err != nil {
+				continue
+			}
+
+			if obj.Info != nil && obj.Data != nil {
+				arr = append(arr, obj.Info)
+			}
+		}
+	}
+
+	err = createMapYML(arr, toDir)
+	if err == nil {
+		fmt.Printf("Created: MAP\n")
+	}
+
+	return err
 }
 
 // //
@@ -383,8 +429,8 @@ func writeGoData(fromFilePath, fromReadDir, toDir, packageName string) error {
 	return nil
 }
 
-func writeGoMap(fromFilePath, fromReadDir, toDir, packageName string) error {
-	fmt.Println("writeGoMap", fromFilePath, toDir, packageName)
+func writeGoMap(fromReadDir, toDir, packageName string) error {
+	fmt.Println("writeGoMap", toDir, packageName)
 	return nil
 }
 

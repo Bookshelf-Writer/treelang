@@ -62,3 +62,51 @@ func createLangJSON(obj *LangObj, toDir string) error {
 func createLangGO(obj *LangObj, toDir string) error {
 	return nil
 }
+
+// //
+
+func createMapYML(arr []*LangInfoObj, toDir string) error {
+	maps := make(map[string]*LangInfoObj)
+	for _, info := range arr {
+		maps[strings.ToLower(info.Code)] = info
+	}
+
+	yamlData, err := yaml.Marshal(maps)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(
+		filepath.Join(toDir, "treelang_map.gen.yml"),
+		yamlData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createMapJSON(arr []*LangInfoObj, toDir string) error {
+	maps := make(map[string]*LangInfoObj)
+	for _, info := range arr {
+		maps[strings.ToLower(info.Code)] = info
+	}
+
+	jsonData, err := json.MarshalIndent(maps, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(
+		filepath.Join(toDir, "treelang_map.gen.json"),
+		jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createMapGO(arr []*LangInfoObj, toDir string) error {
+	return nil
+}

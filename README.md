@@ -59,11 +59,15 @@ go build -o treelang.bin
 ```
 
 ```bash
+./treelang.bin generate --from treeLang --to TEMP --json --master TEMP/treelang_en.gen.yml
+```
+
+```bash
 ./treelang.bin generate --from treeLang/en.json --to TEMP --json
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --json --map
+./treelang.bin generate --from treeLang --to TEMP --json --map
 ```
 
 ```bash
@@ -71,7 +75,7 @@ go build -o treelang.bin
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --yml --map
+./treelang.bin generate --from treeLang --to TEMP --yml --map
 ```
 
 ```bash
@@ -79,7 +83,7 @@ go build -o treelang.bin
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --go-package main --map
+./treelang.bin generate --from treeLang --to TEMP --go-package main --map
 ```
 
 ---
