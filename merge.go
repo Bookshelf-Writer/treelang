@@ -61,3 +61,9 @@ func merge(def, data any, pad int, key string) any {
 
 	return ""
 }
+
+func mergeLangObj(master, slave *LangObj, pad int) *LangObj {
+	data := merge(master.Data, slave.Data, pad, "data")
+	slave.Data = data.(map[string]any)
+	return slave
+}

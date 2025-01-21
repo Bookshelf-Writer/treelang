@@ -46,8 +46,8 @@ func ToGoVariableName(input string) string {
 	return string(result)
 }
 
-func Hash(content string) string {
+func Hash(data []byte) string {
 	h, _ := blake2b.New(16, []byte(GlobalHash))
-	h.Write([]byte(content))
+	h.Write(data)
 	return hex.EncodeToString(h.Sum(nil))
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	generator "github.com/Bookshelf-Writer/SimpleGenerator"
-	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 	"os"
 	"path"
@@ -167,22 +166,11 @@ func writeYmlData(fromFilePath, fromReadDir, toDir string) error {
 
 	for fileName, obj := range slave {
 		fmt.Printf("%s:\n", green(fileName))
-		finalObj := merge(master.Data, obj.Data, 1, "data")
-
-		yamlData, err := yaml.Marshal(&finalObj)
-		if err != nil {
-			fmt.Printf("Помилка при маршалінгу YAML: %s\n", red(err.Error()))
-			continue
+		finalObj := mergeLangObj(master, obj, 1)
+		err = createLangYML(finalObj, toDir)
+		if err == nil {
+			fmt.Printf("Created: YML %s\n", blue(finalObj.Info.Name.EN))
 		}
-
-		err = os.WriteFile(
-			filepath.Join(toDir, "treelang_"+strings.ToLower(obj.Info.Code)+".gen.yml"),
-			yamlData, 0644)
-		if err != nil {
-			fmt.Printf("Помилка при записі файлу: %s\n", red(err.Error()))
-			continue
-		}
-		fmt.Println("успешно записано")
 	}
 
 	return nil
