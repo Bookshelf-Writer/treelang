@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	generator "github.com/Bookshelf-Writer/SimpleGenerator"
 	"reflect"
@@ -185,5 +186,51 @@ func createLangGO(obj *LangObj, toDir string) error {
 }
 
 func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
-	return nil
+	if len(arr) == 0 {
+		return errors.New("can't build a map, no data")
+	}
+	goGen := generator.NewFilePathName(toDir, packageName)
+
+	// //
+
+	enumMap := make(map[string]generator.GeneratorValueObj)
+	for pos, info := range arr {
+		enumMap[strings.ToUpper(info.Code)] = generator.GeneratorValueObj{Val: pos + 1}
+	}
+
+	goGen.ConstructEnum("Langs", "Lang", byte(0), enumMap)
+
+	goGen.SeparatorX4().LN()
+
+	// //
+
+	maps := make(map[generator.GeneratorValueObj]generator.GeneratorValueObj)
+	mapType := goGen.AddMap("Langs", goGen.NewType("LangType"), goGen.NewType("*LangObj"), maps)
+
+	goGen.AddFunc(
+		"Obj",
+		nil,
+		map[string]generator.GeneratorTypeObj{
+			"obj": generator.GeneratorTypeObj{Types: goGen.NewType("*LangObj")},
+		},
+		goGen.NewType("LangType"),
+		func(gen *generator.GeneratorObj) {
+			gen.Print("obj, ok := ").Print(mapType.Name()).Print("[*parent]").LN()
+			gen.PrintLN("if !ok {")
+			gen.PrintLN("obj = LangsMap[1]")
+			gen.PrintLN("}")
+		},
+	)
+
+	// //
+
+	fileName := genMapName + ".go"
+	err := goGen.Save(fileName)
+	if err == nil {
+		fmt.Printf("The file-map was created successfully. \n\tDir: %s \n\tFile: %s\n",
+			cyan(toDir),
+			green(fileName),
+		)
+	}
+	return err
 }
