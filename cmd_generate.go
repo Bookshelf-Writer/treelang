@@ -54,7 +54,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		if fromPath == FilePathIsDir {
-			if masterPath == FilePathUnknown {
+			if masterPath == FilePathUnknown && !*CmdMap {
 				return paramErr("master", errors.New("this parameter is required"))
 			}
 		}
@@ -68,25 +68,27 @@ var generateCmd = &cobra.Command{
 			}
 			CmdFromFilePath = path.Dir(CmdFromFilePath)
 		}
-		if masterPath != FilePathValid {
+		if masterPath != FilePathValid && !*CmdMap {
 			return paramErr("master", errors.New("error with parameter. must point to a file"))
 		}
 
 		// //
 
-		errFile := errors.New("the specified master-file is not a valid language file")
-		obj, err := ReadFile(CmdMasterFile)
-		if err != nil {
-			return errFile
-		}
-		if obj == nil {
-			return errFile
-		}
-		if obj.Data == nil || obj.Info == nil {
-			return errFile
-		}
-		if obj.Info.Name == nil {
-			return errFile
+		if !*CmdMap {
+			errFile := errors.New("the specified master-file is not a valid language file")
+			obj, err := ReadFile(CmdMasterFile)
+			if err != nil {
+				return errFile
+			}
+			if obj == nil {
+				return errFile
+			}
+			if obj.Data == nil || obj.Info == nil {
+				return errFile
+			}
+			if obj.Info.Name == nil {
+				return errFile
+			}
 		}
 
 		// //

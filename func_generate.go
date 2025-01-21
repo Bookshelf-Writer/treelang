@@ -21,6 +21,12 @@ func newSys(obj *LangObj) *LangSysObj {
 	return sys
 }
 
+func genFileName(info *LangInfoObj) string {
+	return "treelang_" + strings.ToLower(info.Code) + ".gen"
+}
+
+const genMapName = "treelang_map.gen"
+
 // //
 
 func createLangYML(obj *LangObj, toDir string) error {
@@ -32,7 +38,7 @@ func createLangYML(obj *LangObj, toDir string) error {
 	}
 
 	err = os.WriteFile(
-		filepath.Join(toDir, "treelang_"+strings.ToLower(obj.Info.Code)+".gen.yml"),
+		filepath.Join(toDir, genFileName(obj.Info)+".yml"),
 		yamlData, 0644)
 	if err != nil {
 		return err
@@ -50,7 +56,7 @@ func createLangJSON(obj *LangObj, toDir string) error {
 	}
 
 	err = os.WriteFile(
-		filepath.Join(toDir, "treelang_"+strings.ToLower(obj.Info.Code)+".gen.json"),
+		filepath.Join(toDir, genFileName(obj.Info)+".json"),
 		jsonData, 0644)
 	if err != nil {
 		return err
@@ -77,7 +83,7 @@ func createMapYML(arr []*LangInfoObj, toDir string) error {
 	}
 
 	err = os.WriteFile(
-		filepath.Join(toDir, "treelang_map.gen.yml"),
+		filepath.Join(toDir, genMapName+".yml"),
 		yamlData, 0644)
 	if err != nil {
 		return err
@@ -98,7 +104,7 @@ func createMapJSON(arr []*LangInfoObj, toDir string) error {
 	}
 
 	err = os.WriteFile(
-		filepath.Join(toDir, "treelang_map.gen.json"),
+		filepath.Join(toDir, genMapName+".json"),
 		jsonData, 0644)
 	if err != nil {
 		return err
