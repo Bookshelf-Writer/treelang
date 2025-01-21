@@ -128,7 +128,39 @@ var generateCmd = &cobra.Command{
 // // // // // //
 
 func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
-	fmt.Println("Generating json data")
+	master, err := ReadFile(fromFilePath)
+	if err != nil {
+		return err
+	}
+
+	files, err := os.ReadDir(fromReadDir)
+	if err != nil {
+		return err
+	}
+
+	slave := make(map[string]*LangObj, 0)
+	for _, file := range files {
+		if !file.IsDir() {
+			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
+			if err != nil {
+				continue
+			}
+
+			if obj.Info != nil && obj.Data != nil {
+				slave[file.Name()] = obj
+			}
+		}
+	}
+
+	for fileName, obj := range slave {
+		fmt.Printf("%s:\n", green(fileName))
+		finalObj := mergeLangObj(master, obj, 1)
+		err = createLangJSON(finalObj, toDir)
+		if err == nil {
+			fmt.Printf("Created: JSON %s\n", blue(finalObj.Info.Name.EN))
+		}
+	}
+
 	return nil
 }
 

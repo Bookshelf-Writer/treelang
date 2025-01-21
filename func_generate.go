@@ -1,8 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"github.com/ghodss/yaml"
 	"os"
 	"path/filepath"
@@ -16,14 +15,9 @@ func newSys(obj *LangObj) *LangSysObj {
 	sys := new(LangSysObj)
 	sys.Date = time.Now().Format("2006-01-02")
 
-	var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
+	buffer, _ := json.Marshal(obj.Data)
+	sys.Hash = Hash(buffer)
 
-	if err := encoder.Encode(obj.Data); err != nil {
-		return sys
-	}
-
-	sys.Hash = Hash(buffer.Bytes())
 	return sys
 }
 
@@ -48,6 +42,20 @@ func createLangYML(obj *LangObj, toDir string) error {
 }
 
 func createLangJSON(obj *LangObj, toDir string) error {
+	obj.Sys = newSys(obj)
+
+	jsonData, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(
+		filepath.Join(toDir, "treelang_"+strings.ToLower(obj.Info.Code)+".gen.json"),
+		jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

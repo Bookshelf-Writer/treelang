@@ -35,14 +35,14 @@ func merge(def, data any, pad int, key string) any {
 
 	if _, ok := def.(string); ok {
 		if data == nil {
-			return ""
+			return key
 		}
 
 		if dataStr, ok := data.(string); ok {
 			return dataStr
 		}
 		printMsg("%s: %s", cyan(key), yellow("must be a string"))
-		return ""
+		return key
 	}
 
 	if _, ok := def.([]any); ok {
@@ -59,7 +59,7 @@ func merge(def, data any, pad int, key string) any {
 		return []string{}
 	}
 
-	return ""
+	return key
 }
 
 func mergeLangObj(master, slave *LangObj, pad int) *LangObj {
