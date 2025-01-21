@@ -53,7 +53,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-env
-          path: build_env.txt
+          path: |
+            build_env.txt
+            value_dependencies.go
+            value_project.go
 
   build:
     name: "Build [${{ matrix.os }}]"
