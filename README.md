@@ -83,6 +83,10 @@ go build -o treelang.bin
 ```
 
 ```bash
+./treelang.bin generate --from treeLang/en.json --to TEMP --go-package main --func-png
+```
+
+```bash
 ./treelang.bin generate --from treeLang --to TEMP --go-package main --map
 ```
 

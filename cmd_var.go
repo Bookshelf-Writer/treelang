@@ -13,7 +13,7 @@ var (
 	CmdMode string // [all|short]
 	CmdFull *bool
 
-	CmdPackage      string
-	CmdJson, CmdYml *bool
-	CmdMap          *bool
+	CmdPackage       string
+	CmdJson, CmdYml  *bool
+	CmdMap, CmdGoPNG *bool
 )
