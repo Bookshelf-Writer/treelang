@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	generator "github.com/Bookshelf-Writer/SimpleGenerator"
@@ -181,8 +182,59 @@ func writeGoStruct(fromFilePath, toDir, packageName string) error {
 
 // //
 
-func createLangGO(obj *LangObj, toDir string) error {
-	return nil
+func createLangGO(obj *LangObj, toDir, packageName string) error {
+	goGen := generator.NewFilePathName(toDir, packageName)
+	obj.Sys = newSys(obj)
+
+	// //
+
+	goGen.NewImport("encoding/json", "")
+	valueName := ToGoVariableName(obj.Info.Code)
+
+	goGen.PrintLN("var (")
+	goGen.Print("\t" + valueName).PrintLN(" *LangObj")
+
+	jsonData, _ := json.Marshal(obj)
+	goGen.Print("\t_" + valueName).Print(" = []byte{").LN()
+	ln := len(jsonData)
+	for i := 0; i < ln; i += 16 {
+		end := i + 16
+		if end > ln {
+			end = ln
+		}
+
+		for _, b := range jsonData[i:end] {
+			goGen.Sprintf("%#02x, ", b)
+		}
+		goGen.LN()
+	}
+	goGen.PrintLN("}")
+
+	goGen.PrintLN(")")
+
+	// //
+
+	goGen.AddFunc(
+		"init", nil, nil, nil, func(gen *generator.GeneratorObj) {
+			goGen.Print(valueName).PrintLN(" = new(LangObj)")
+			goGen.Sprintf("err := json.Unmarshal(_%s, %s)", valueName, valueName).LN()
+			goGen.PrintLN("if err != nil {").PrintLN("panic(err)").PrintLN("}")
+		},
+	)
+
+	// //
+
+	fileName := genFileName(obj.Info) + ".go"
+	err := goGen.Save(fileName)
+	if err == nil {
+		fmt.Printf("The file-struct was created successfully. \n\tDir: %s \n\tFile: %s\n",
+			cyan(toDir),
+			green(fileName),
+		)
+	} else {
+		fmt.Println(err, goGen.Errors())
+	}
+	return err
 }
 
 func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
@@ -195,32 +247,29 @@ func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
 
 	enumMap := make(map[string]generator.GeneratorValueObj)
 	for pos, info := range arr {
-		enumMap[strings.ToUpper(info.Code)] = generator.GeneratorValueObj{Val: pos + 1}
+		enumMap[ToGoVariableName(info.Code)] = generator.GeneratorValueObj{Val: pos + 1}
 	}
 
-	goGen.ConstructEnum("Langs", "Lang", byte(0), enumMap)
+	goGen.ConstructEnum("Lang", "Lang", byte(0), enumMap)
 
 	goGen.SeparatorX4().LN()
 
 	// //
 
 	maps := make(map[generator.GeneratorValueObj]generator.GeneratorValueObj)
-	mapType := goGen.AddMap("Langs", goGen.NewType("LangType"), goGen.NewType("*LangObj"), maps)
+	for code := range enumMap {
+		ToGoVariableName(code)
+		maps[generator.GeneratorValueObj{Val: "Lang" + code}] = generator.GeneratorValueObj{Val: code}
+	}
+	mapType := goGen.AddMap("Lang", goGen.NewType("LangType"), goGen.NewType("*LangObj"), maps)
 
-	goGen.AddFunc(
-		"Obj",
-		nil,
-		map[string]generator.GeneratorTypeObj{
-			"obj": generator.GeneratorTypeObj{Types: goGen.NewType("*LangObj")},
-		},
-		goGen.NewType("LangType"),
-		func(gen *generator.GeneratorObj) {
-			gen.Print("obj, ok := ").Print(mapType.Name()).Print("[*parent]").LN()
-			gen.PrintLN("if !ok {")
-			gen.PrintLN("obj = LangsMap[1]")
-			gen.PrintLN("}")
-		},
-	)
+	goGen.PrintLN("func (parent LangType) Obj() *LangObj {")
+	goGen.Print("obj, ok := ").Print(mapType.Name()).Print("[parent]").LN()
+	goGen.PrintLN("if !ok {")
+	goGen.PrintLN("return LangMap[1]")
+	goGen.PrintLN("}")
+	goGen.PrintLN("return obj")
+	goGen.PrintLN("}")
 
 	// //
 

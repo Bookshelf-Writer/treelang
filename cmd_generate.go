@@ -248,11 +248,6 @@ func writeYmlMap(fromReadDir, toDir string) error {
 // //
 
 func writeGoData(fromFilePath, fromReadDir, toDir, packageName string) error {
-	err := writeGoStruct(fromFilePath, toDir, packageName)
-	if err == nil {
-		return err
-	}
-
 	master, slave, err := parseSlave(fromFilePath, fromReadDir)
 	if err != nil {
 		return err
@@ -261,13 +256,13 @@ func writeGoData(fromFilePath, fromReadDir, toDir, packageName string) error {
 	for fileName, obj := range slave {
 		fmt.Printf("%s:\n", green(fileName))
 		finalObj := mergeLangObj(master, obj, 1)
-		err = createLangGO(finalObj, toDir)
+		err = createLangGO(finalObj, toDir, packageName)
 		if err == nil {
 			fmt.Printf("Created: GO %s\n", blue(finalObj.Info.Name.EN))
 		}
 	}
 
-	return nil
+	return writeGoStruct(fromFilePath, toDir, packageName)
 }
 
 func writeGoMap(fromReadDir, toDir, packageName string) error {
