@@ -129,7 +129,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: buildGo
-          asset_name: "treelang.${{ env.FILE_EX }}"
+          asset_name: "treelang.${{matrix.os}}.${{ matrix.os == 'windows-latest' && 'exe' || 'bin' }}"
           asset_content_type: application/octet-stream
 
   push-version:
