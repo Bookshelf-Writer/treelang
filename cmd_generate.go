@@ -126,15 +126,15 @@ var generateCmd = &cobra.Command{
 
 // // // // // //
 
-func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
+func parseSlave(fromFilePath, fromReadDir string) (*LangObj, map[string]*LangObj, error) {
 	master, err := ReadFile(fromFilePath)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	files, err := os.ReadDir(fromReadDir)
 	if err != nil {
-		return err
+		return master, nil, err
 	}
 
 	slave := make(map[string]*LangObj, 0)
@@ -149,6 +149,40 @@ func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
 				slave[file.Name()] = obj
 			}
 		}
+	}
+
+	return master, slave, nil
+}
+
+func parseMap(fromReadDir string) ([]*LangInfoObj, error) {
+	files, err := os.ReadDir(fromReadDir)
+	if err != nil {
+		return nil, err
+	}
+
+	arr := make([]*LangInfoObj, 0)
+	for _, file := range files {
+		if !file.IsDir() {
+			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
+			if err != nil {
+				continue
+			}
+
+			if obj.Info != nil && obj.Data != nil {
+				arr = append(arr, obj.Info)
+			}
+		}
+	}
+
+	return arr, nil
+}
+
+// // // //
+
+func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
+	master, slave, err := parseSlave(fromFilePath, fromReadDir)
+	if err != nil {
+		return err
 	}
 
 	for fileName, obj := range slave {
@@ -164,23 +198,9 @@ func writeJsonData(fromFilePath, fromReadDir, toDir string) error {
 }
 
 func writeJsonMap(fromReadDir, toDir string) error {
-	files, err := os.ReadDir(fromReadDir)
+	arr, err := parseMap(fromReadDir)
 	if err != nil {
 		return err
-	}
-
-	arr := make([]*LangInfoObj, 0)
-	for _, file := range files {
-		if !file.IsDir() {
-			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
-			if err != nil {
-				continue
-			}
-
-			if obj.Info != nil && obj.Data != nil {
-				arr = append(arr, obj.Info)
-			}
-		}
 	}
 
 	err = createMapJSON(arr, toDir)
@@ -194,28 +214,9 @@ func writeJsonMap(fromReadDir, toDir string) error {
 // //
 
 func writeYmlData(fromFilePath, fromReadDir, toDir string) error {
-	master, err := ReadFile(fromFilePath)
+	master, slave, err := parseSlave(fromFilePath, fromReadDir)
 	if err != nil {
 		return err
-	}
-
-	files, err := os.ReadDir(fromReadDir)
-	if err != nil {
-		return err
-	}
-
-	slave := make(map[string]*LangObj, 0)
-	for _, file := range files {
-		if !file.IsDir() {
-			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
-			if err != nil {
-				continue
-			}
-
-			if obj.Info != nil && obj.Data != nil {
-				slave[file.Name()] = obj
-			}
-		}
 	}
 
 	for fileName, obj := range slave {
@@ -231,23 +232,9 @@ func writeYmlData(fromFilePath, fromReadDir, toDir string) error {
 }
 
 func writeYmlMap(fromReadDir, toDir string) error {
-	files, err := os.ReadDir(fromReadDir)
+	arr, err := parseMap(fromReadDir)
 	if err != nil {
 		return err
-	}
-
-	arr := make([]*LangInfoObj, 0)
-	for _, file := range files {
-		if !file.IsDir() {
-			obj, err := ReadFile(filepath.Join(fromReadDir, file.Name()))
-			if err != nil {
-				continue
-			}
-
-			if obj.Info != nil && obj.Data != nil {
-				arr = append(arr, obj.Info)
-			}
-		}
 	}
 
 	err = createMapYML(arr, toDir)
@@ -266,12 +253,35 @@ func writeGoData(fromFilePath, fromReadDir, toDir, packageName string) error {
 		return err
 	}
 
+	master, slave, err := parseSlave(fromFilePath, fromReadDir)
+	if err != nil {
+		return err
+	}
+
+	for fileName, obj := range slave {
+		fmt.Printf("%s:\n", green(fileName))
+		finalObj := mergeLangObj(master, obj, 1)
+		err = createLangGO(finalObj, toDir)
+		if err == nil {
+			fmt.Printf("Created: GO %s\n", blue(finalObj.Info.Name.EN))
+		}
+	}
+
 	return nil
 }
 
 func writeGoMap(fromReadDir, toDir, packageName string) error {
-	fmt.Println("writeGoMap", toDir, packageName)
-	return nil
+	arr, err := parseMap(fromReadDir)
+	if err != nil {
+		return err
+	}
+
+	err = createMapGO(arr, toDir, packageName)
+	if err == nil {
+		fmt.Printf("Created: MAP\n")
+	}
+
+	return err
 }
 
 // // // // // //

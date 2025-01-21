@@ -177,3 +177,13 @@ func writeGoStruct(fromFilePath, toDir, packageName string) error {
 	}
 	return err
 }
+
+// //
+
+func createLangGO(obj *LangObj, toDir string) error {
+	return nil
+}
+
+func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
+	return nil
+}

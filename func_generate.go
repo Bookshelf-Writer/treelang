@@ -65,10 +65,6 @@ func createLangJSON(obj *LangObj, toDir string) error {
 	return nil
 }
 
-func createLangGO(obj *LangObj, toDir string) error {
-	return nil
-}
-
 // //
 
 func createMapYML(arr []*LangInfoObj, toDir string) error {
@@ -110,9 +106,5 @@ func createMapJSON(arr []*LangInfoObj, toDir string) error {
 		return err
 	}
 
-	return nil
-}
-
-func createMapGO(arr []*LangInfoObj, toDir string) error {
 	return nil
 }
