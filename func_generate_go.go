@@ -219,6 +219,7 @@ func createLangGO(obj *LangObj, toDir, packageName string) error {
 			goGen.Print(valueName).PrintLN(" = new(LangObj)")
 			goGen.Sprintf("err := json.Unmarshal(_%s, %s)", valueName, valueName).LN()
 			goGen.PrintLN("if err != nil {").PrintLN("panic(err)").PrintLN("}")
+			goGen.Sprintf("LangMap[Lang%s] = %s", valueName, valueName).LN()
 		},
 	)
 
@@ -256,15 +257,10 @@ func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
 
 	// //
 
-	maps := make(map[generator.GeneratorValueObj]generator.GeneratorValueObj)
-	for code := range enumMap {
-		ToGoVariableName(code)
-		maps[generator.GeneratorValueObj{Val: "Lang" + code}] = generator.GeneratorValueObj{Val: code}
-	}
-	mapType := goGen.AddMap("Lang", goGen.NewType("LangType"), goGen.NewType("*LangObj"), maps)
+	goGen.PrintLN("var LangMap = make(map[LangType]*LangObj)")
 
 	goGen.PrintLN("func (parent LangType) Obj() *LangObj {")
-	goGen.Print("obj, ok := ").Print(mapType.Name()).Print("[parent]").LN()
+	goGen.PrintLN("obj, ok := LangMap[parent]")
 	goGen.PrintLN("if !ok {")
 	goGen.PrintLN("return LangMap[1]")
 	goGen.PrintLN("}")
