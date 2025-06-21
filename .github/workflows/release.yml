@@ -103,9 +103,9 @@ jobs:
           
           mkdir -p target
           mkdir -p tmp
-
-          go mod tidy
+          
           go generate
+          go mod tidy
           
           go build -ldflags="-s -w" -o treelang ./cli/...
 
