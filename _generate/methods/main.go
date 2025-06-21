@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -64,9 +65,16 @@ func main() {
 	data.ImportsArr = append(data.ImportsArr, "github.com/spf13/cobra")
 
 	for _, method := range methods {
+		if len(method) == 0 {
+			continue
+		}
 		data.ImportsArr = append(data.ImportsArr, method)
 
 		name := strings.Split(method, "/")
+		if len(name[len(name)-1]) == 0 {
+			panic(errors.New(method))
+			continue
+		}
 		data.Methods = append(data.Methods, name[len(name)-1])
 	}
 
