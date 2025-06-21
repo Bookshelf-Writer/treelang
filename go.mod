@@ -1,4 +1,4 @@
-module treelang
+module github.com/Bookshelf-Writer/treelang
 
 go 1.22
 

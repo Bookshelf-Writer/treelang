@@ -1,6 +1,7 @@
-package main
+package diff
 
 import (
+	"encoding/json"
 	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"strings"
@@ -8,7 +9,14 @@ import (
 
 // // // // // // // // // // // // // // // // // //
 
-func diffFile(filepathA, filepathB string) ([]string, error) {
+func deepCopy(src any) map[string]any {
+	tempMap := make(map[string]any)
+	bytes, _ := json.Marshal(src)
+	json.Unmarshal(bytes, &tempMap)
+	return tempMap
+}
+
+func DiffFile(filepathA, filepathB string) ([]string, error) {
 	rf1, err := os.ReadFile(filepathA)
 	if err != nil {
 		return nil, err
@@ -42,9 +50,9 @@ func diffFile(filepathA, filepathB string) ([]string, error) {
 	return finalArr, nil
 }
 
-func diffObj(def, data any) ([]string, error) {
-	defValue := _deepCopy(def)
-	dataValue := _deepCopy(data)
+func DiffObj(def, data any) ([]string, error) {
+	defValue := deepCopy(def)
+	dataValue := deepCopy(data)
 
 	clearObj(&defValue)
 	file1 := saveTempFileJSON(defValue)
@@ -52,7 +60,7 @@ func diffObj(def, data any) ([]string, error) {
 	clearObj(&dataValue)
 	file2 := saveTempFileJSON(dataValue)
 
-	arr, err := diffFile(file1, file2)
+	arr, err := DiffFile(file1, file2)
 	if err != nil {
 		return nil, err
 	}

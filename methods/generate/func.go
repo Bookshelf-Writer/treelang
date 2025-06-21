@@ -1,7 +1,8 @@
-package main
+package generate
 
 import (
 	"encoding/json"
+	. "github.com/Bookshelf-Writer/treelang"
 	"github.com/ghodss/yaml"
 	"os"
 	"path/filepath"

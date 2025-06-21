@@ -1,4 +1,4 @@
-package main
+package treelang
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 )
 
 // // // // // // // // // // // // // // // // // //
+
+var FileExtension = []string{".yml", ".yaml", ".json"}
 
 type FilePathType byte
 
@@ -58,24 +60,24 @@ func CheckFilePath(filePath string) FilePathType {
 
 func CheckPathCMD(val *string, param string) (FilePathType, error) {
 	if *val == "" {
-		return FilePathErr, errors.New("you must specify a file using " + cyan("--"+param))
+		return FilePathErr, errors.New("you must specify a file using " + Cyan("--"+param))
 	}
 
 	path := CheckFilePath(*val)
 	if path != FilePathValid && path != FilePathIsDir && path != FilePathValidDir {
-		return path, paramErr(param, errors.New(path.String()))
+		return path, ParamErr(param, path.String())
 	}
 
 	abs, err := filepath.Abs(*val)
 	if err != nil {
-		return path, paramErr(param, err)
+		return path, ParamErr(param, err.Error())
 	}
 
 	if path == FilePathValid {
 		ex := filepath.Ext(abs)
 		isOK := false
 
-		for _, name := range fileExtension {
+		for _, name := range FileExtension {
 			if name == ex {
 				isOK = true
 				break
@@ -83,12 +85,10 @@ func CheckPathCMD(val *string, param string) (FilePathType, error) {
 		}
 
 		if !isOK {
-			return path, paramErr(param, errors.New("Invalid file extension. Must be: "+strings.Join(fileExtension, ", ")))
+			return path, ParamErr(param, "Invalid file extension. Must be: "+strings.Join(FileExtension, ", "))
 		}
 	}
 
 	*val = abs
 	return path, nil
 }
-
-// // // //

@@ -109,7 +109,7 @@ jobs:
       - name: Run build steps
         run: |
           go mod tidy
-          go build -ldflags="-s -w" -o buildGo
+          go build -ldflags="-s -w" -o buildGo ./cli/...
 
       - name: Set namespace for Windows
         if: ${{ matrix.os == 'windows-latest' }}

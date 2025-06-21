@@ -1,7 +1,8 @@
-package main
+package generate
 
 import (
 	"fmt"
+	. "github.com/Bookshelf-Writer/treelang"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ func merge(def, data any, pad int, key string) any {
 				if dataVal, exists := dataMap[k]; exists {
 					result[k] = merge(defVal, dataVal, pad, kk)
 				} else {
-					printMsg("%s: %s", cyan(kk), red("no field in file"))
+					printMsg("%s: %s", Cyan(kk), Red("no field in file"))
 					result[k] = merge(defVal, nil, pad, kk)
 				}
 			} else {
@@ -41,7 +42,7 @@ func merge(def, data any, pad int, key string) any {
 		if dataStr, ok := data.(string); ok {
 			return dataStr
 		}
-		printMsg("%s: %s", cyan(key), yellow("must be a string"))
+		printMsg("%s: %s", Cyan(key), Yellow("must be a string"))
 		return key
 	}
 
@@ -51,11 +52,11 @@ func merge(def, data any, pad int, key string) any {
 				if _, ok := dataStr[0].(string); ok {
 					return dataStr
 				}
-				printMsg("%s: %s", cyan(key), yellow("the array must be made up of strings"))
+				printMsg("%s: %s", Cyan(key), Yellow("the array must be made up of strings"))
 			}
 			return []string{}
 		}
-		printMsg("%s: %s", cyan(key), yellow("must be an array"))
+		printMsg("%s: %s", Cyan(key), Yellow("must be an array"))
 		return []string{}
 	}
 

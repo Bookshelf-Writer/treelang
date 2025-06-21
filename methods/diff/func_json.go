@@ -1,4 +1,4 @@
-package main
+package diff
 
 import (
 	"encoding/json"
@@ -10,15 +10,8 @@ import (
 
 // // // // // // // // // // // // // // // // // //
 
-func _deepCopy(src any) map[string]any {
-	tempMap := make(map[string]any)
-	bytes, _ := json.Marshal(src)
-	json.Unmarshal(bytes, &tempMap)
-	return tempMap
-}
-
 func sortedJSON(data any) []byte {
-	tempMap := _deepCopy(data)
+	tempMap := deepCopy(data)
 
 	keys := make([]string, 0, len(tempMap))
 	for key := range tempMap {

@@ -1,8 +1,9 @@
-package main
+package treelang
 
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/Bookshelf-Writer/treelang/target"
 	"golang.org/x/crypto/blake2b"
 	"sort"
 	"strings"
@@ -11,7 +12,7 @@ import (
 
 // // // // // // // // // // // // // // // // // //
 
-func sortMapKey[T any](mp map[string]T) []string {
+func SortMapKey[T any](mp map[string]T) []string {
 	var listBuf []string
 	for key := range mp {
 		listBuf = append(listBuf, key)
@@ -21,20 +22,13 @@ func sortMapKey[T any](mp map[string]T) []string {
 	return listBuf
 }
 
-func paramErr(param string, err error) error {
-	return errors.New(cyan("--"+param) + ":\t" + err.Error())
+func ParamErr(param, err string) error {
+	return errors.New(Cyan("--"+param) + ":\t" + err)
 }
 
 // // // //
 
-// ToGoVariableName перетворює довільний рядок на коректний експортований
-// ідентифікатор у стилі PascalCase (CamelCase з великої літери).
-// Правила:
-// /  • усі пробіли та будь-які неалфавітно-цифрові символи вважаються роздільниками;
-// /  • усе, що йде після роздільника, починається з великої літери;
-// /  • якщо результат починається не з літери (наприклад, з цифри), додаємо префікс "X".
 func ToGoVariableName(s string) string {
-	// Розбиваємо рядок за будь-яким символом, який НЕ є літерою чи цифрою.
 	words := strings.FieldsFunc(s, func(r rune) bool {
 		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
 	})
@@ -60,7 +54,7 @@ func ToGoVariableName(s string) string {
 }
 
 func Hash(data []byte) string {
-	h, _ := blake2b.New(16, []byte(GlobalHash))
+	h, _ := blake2b.New(16, []byte(target.GlobalHash))
 	h.Write(data)
 	return hex.EncodeToString(h.Sum(nil))
 }

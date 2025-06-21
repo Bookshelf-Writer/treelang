@@ -1,10 +1,11 @@
-package main
+package generate
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	generator "github.com/Bookshelf-Writer/SimpleGenerator"
+	. "github.com/Bookshelf-Writer/treelang"
 	"reflect"
 	"strings"
 )
@@ -99,10 +100,10 @@ func writeGoStruct(fromFilePath, toDir, packageName string) error {
 
 	kkk := structMap(obj.Data)
 
-	for _, key := range sortMapKey(kkk) {
+	for _, key := range SortMapKey(kkk) {
 		bufMap := make(map[string]generator.GeneratorTypeObj)
 
-		for _, k := range sortMapKey(kkk[key]) {
+		for _, k := range SortMapKey(kkk[key]) {
 			bufMap[k] = types(kkk[key][k][0], kkk[key][k][1])
 		}
 		goGen.AddStruct(key, bufMap)
@@ -173,8 +174,8 @@ func writeGoStruct(fromFilePath, toDir, packageName string) error {
 	err = goGen.Save(fileName)
 	if err == nil {
 		fmt.Printf("The file-struct was created successfully. \n\tDir: %s \n\tFile: %s\n",
-			cyan(toDir),
-			green(fileName),
+			Cyan(toDir),
+			Green(fileName),
 		)
 	}
 	return err
@@ -229,8 +230,8 @@ func createLangGO(obj *LangObj, toDir, packageName string) error {
 	err := goGen.Save(fileName)
 	if err == nil {
 		fmt.Printf("The file-struct was created successfully. \n\tDir: %s \n\tFile: %s\n",
-			cyan(toDir),
-			green(fileName),
+			Cyan(toDir),
+			Green(fileName),
 		)
 	} else {
 		fmt.Println(err, goGen.Errors())
@@ -273,8 +274,8 @@ func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
 	err := goGen.Save(fileName)
 	if err == nil {
 		fmt.Printf("The file-map was created successfully. \n\tDir: %s \n\tFile: %s\n",
-			cyan(toDir),
-			green(fileName),
+			Cyan(toDir),
+			Green(fileName),
 		)
 	}
 	return err

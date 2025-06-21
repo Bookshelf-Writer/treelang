@@ -1,0 +1,12 @@
+// Code generated using '_generate/dependencies/main.go'; DO NOT EDIT.
+// Generation time: {{.GenerationTime}}
+
+package {{.PackageName}}
+
+// // // // // // // //
+
+var GlobalDependenciesMap = map[string]string{
+{{- range .Deps }}
+    "{{ .Key }}": "{{ .Value }}",
+{{- end }}
+}

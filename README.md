@@ -7,7 +7,11 @@
 ## Script for working with language trees
 
 ```bash
-go build -o treelang.bin
+ go generate ./...
+```
+
+```bash
+go build -ldflags="-s -w" -o treelang.bin ./cli/...
 ```
 
 ```bash

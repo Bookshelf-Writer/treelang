@@ -1,0 +1,35 @@
+// Code generated using '_generate/dependencies/main.go'; DO NOT EDIT.
+// Generation time: {{.GenerationTime}}
+
+package {{.PackageName}}
+
+{{- if gt (len .ImportsArr) 0 }}
+    {{- if eq (len .ImportsArr) 1 }}
+        {{- $imp := index .ImportsArr 0 }}
+        {{- $parts := split $imp " " }}
+        {{- if gt (len $parts) 1 }}
+            import {{ index $parts 0 }} "{{ index $parts 1 }}"
+        {{- else }}
+            import "{{ index $parts 0 }}"
+        {{- end }}
+    {{- else }}
+        import (
+        {{- range .ImportsArr }}
+            {{- $parts := split . " " }}
+            {{- if gt (len $parts) 1 }}
+                {{ index $parts 0 }} "{{ index $parts 1 }}"
+            {{- else }}
+                "{{ . }}"
+            {{- end }}
+        {{- end }}
+        )
+    {{- end }}
+{{- end }}
+
+// // // // // // // //
+
+var MethodsMap = map[string]func(*cobra.Command){
+{{- range .Methods }}
+    "{{ . }}": {{ . }}.Init,
+{{- end }}
+}

@@ -50,22 +50,22 @@ info() {
     echo "${style_bold}${color_yellow}INFO:${style_nil}${color_yellow} $*${style_nil}"
 }
 
-red() {
+Red() {
     echo -e "${color_red}$*${style_nil}"
 }
-green() {
+Green() {
     echo -e "${color_green}$*${style_nil}"
 }
-yellow() {
+Yellow() {
     echo -e "${color_yellow}$*${style_nil}"
 }
-blue() {
+Blue() {
     echo -e "${color_blue}$*${style_nil}"
 }
 magenta() {
     echo -e "${color_magenta}$*${style_nil}"
 }
-cyan() {
+Cyan() {
     echo -e "${color_cyan}$*${style_nil}"
 }
 

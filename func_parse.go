@@ -1,4 +1,4 @@
-package main
+package treelang
 
 import (
 	"encoding/json"
@@ -61,5 +61,5 @@ func ReadFile(adr string) (*LangObj, error) {
 		return parseJson(adr)
 
 	}
-	return nil, errors.New("unexpected file type: " + red(ex))
+	return nil, errors.New("unexpected file type: " + Red(ex))
 }
