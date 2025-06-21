@@ -10,6 +10,7 @@ on:
         required: false
 
 env:
+  GO_VERSION: "1.24.2"
   PUSH_BRANCH: ${{ inputs.branch || 'main' }}
 
 jobs:
@@ -24,10 +25,10 @@ jobs:
           ref: ${{ env.PUSH_BRANCH }}
           fetch-depth: 0
 
-      - name: 🔧 Встановити Go
+      - name: 🔧 Встановити Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
         with:
-          go-version: 1.24.2
+          go-version: ${{ env.GO_VERSION }}
 
       - name: 📥 Зчитати версію з build-скриптів
         id: ver
@@ -52,17 +53,11 @@ jobs:
           name: build-env
           path: build_env.txt
 
-  # ──────────────────────────────── 2. BUILD ───────────────────────────────────────
-  build:
-    name: "🛠️ Збірка [${{ matrix.os }}]"
+  # ─────────────────────────────── 2. GENERATE ────────────────────────────────────
+  generate:
+    name: "🗂️ Згенерувати вихідні файли"
     needs: prepare
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
-        go: [ 1.24.2 ]
-
+    runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout ${{ env.PUSH_BRANCH }}
         uses: actions/checkout@v4
@@ -70,6 +65,36 @@ jobs:
           ref: ${{ env.PUSH_BRANCH }}
           fetch-depth: 0
 
+      - name: 🔧 Встановити Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: 🛠️ go generate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p target tmp      # → обовʼязкові каталоги
+          go generate
+
+      - name: 📦 Зберегти репозиторій як артефакт
+        uses: actions/upload-artifact@v4
+        with:
+          name: src-gen
+          path: .
+          retention-days: 1
+
+  # ─────────────────────────────── 3. BUILD ───────────────────────────────────────
+  build:
+    name: "🛠️ Збірка [${{ matrix.os }}]"
+    needs: [ generate ]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    steps:
       - name: 📥 Download env
         uses: actions/download-artifact@v4
         with:
@@ -78,14 +103,18 @@ jobs:
 
       - name: 🗒️ Source env
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          cat build_env.txt >> $GITHUB_ENV
+        run: cat build_env.txt >> $GITHUB_ENV
 
-      - name: 🔧 Встановити Go ${{ matrix.go }}
+      - name: 📥 Download згенерований репозиторій
+        uses: actions/download-artifact@v4
+        with:
+          name: src-gen
+          path: repo
+
+      - name: 🔧 Встановити Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go }}
+          go-version: ${{ env.GO_VERSION }}
 
       - name: 🗂️ Кеш модулів Go
         uses: actions/cache@v4
@@ -93,24 +122,21 @@ jobs:
           path: |
             ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\pkg\mod' || '~/.cache/go-build' }}
             ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\bin' || '~/go/bin' }}
-          key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('repo/go.mod') }}
           restore-keys: ${{ runner.os }}-go
 
       - name: 🛠️ go build
         shell: bash
+        working-directory: repo
         run: |
           set -Eeuo pipefail
-          
-          mkdir -p target
-          mkdir -p tmp
-          
-          go generate
+          mkdir -p target tmp      # необов’язково, але залишаємо для симетрії
           go mod tidy
-          
           go build -ldflags="-s -w" -o treelang ./cli/...
 
       - name: 🏷️ Перейменувати білд + розширення
         shell: bash
+        working-directory: repo
         run: |
           set -Eeuo pipefail
           if [[ "${{ runner.os }}" == "Windows" ]]; then
@@ -124,9 +150,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bin-${{ runner.os }}
-          path: treelang.*
+          path: repo/treelang.*
 
-  # ─────────────────────────────── 3. RELEASE ──────────────────────────────────────
+  # ─────────────────────────────── 4. RELEASE ──────────────────────────────────────
   release:
     name: "🚀 Публікація релізу"
     needs: [ build ]
