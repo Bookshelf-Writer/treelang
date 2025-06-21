@@ -100,8 +100,8 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          go mod tidy
           go generate
+          go mod tidy
           go build -ldflags="-s -w" -o treelang ./cli/...
 
       - name: 🏷️ Перейменувати білд + розширення
