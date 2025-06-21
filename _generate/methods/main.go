@@ -72,7 +72,7 @@ func main() {
 
 		name := strings.Split(method, "/")
 		if len(name[len(name)-1]) == 0 {
-			panic(errors.New(method))
+			panic(errors.New(strings.Join(methods, "; ")))
 			continue
 		}
 		data.Methods = append(data.Methods, name[len(name)-1])
