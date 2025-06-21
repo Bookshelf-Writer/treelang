@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,19 +48,11 @@ func main() {
 	}
 
 	for pos, method := range methods {
-		fmt.Println(pos, method, "\t", strings.Split(method, "treelang"))
+		methodArr := strings.Split(method, "treelang")
+		methods[pos] = gitRoot + methodArr[len(methodArr)-1]
 
-		method = strings.Split(method, "treelang")[1]
-		methods[pos] = gitRoot + method
-
-		fmt.Println("\t", gitRoot, method)
 	}
 	sort.Strings(methods)
-
-	panic(errors.New(strings.Join(methods, "\n")))
-
-	///home/runner/work/treelang/treelang/methods/diff
-	///home/su/GolandProjects/treelang/methods/diff
 
 	data := new(TemplateObj)
 	data.GenerationTime = time.Now().Format(time.RFC3339)
