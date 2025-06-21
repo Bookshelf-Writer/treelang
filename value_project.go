@@ -7,10 +7,10 @@ package main
 const (
 	GlobalName       string = "treelang"
 	GlobalDateUpdate string = "06-21-2025"
-	GlobalHash       string = "6843ecaf8e619b2573b1bed186b13027851ebfaf"
+	GlobalHash       string = "ee01e8c916f1ea2110e3ff34b98449c4e09b7ac8"
 
-	GlobalVersion      string = "2.5.1"
+	GlobalVersion      string = "2.5.2"
 	GlobalVersionMajor string = "2"
 	GlobalVersionMinor uint16 = 5
-	GlobalVersionPatch uint16 = 1
+	GlobalVersionPatch uint16 = 2
 )

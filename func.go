@@ -27,13 +27,13 @@ func paramErr(param string, err error) error {
 
 // // // //
 
-// ToGoGlobalName перетворює довільний рядок на коректний експортований
+// ToGoVariableName перетворює довільний рядок на коректний експортований
 // ідентифікатор у стилі PascalCase (CamelCase з великої літери).
 // Правила:
 // /  • усі пробіли та будь-які неалфавітно-цифрові символи вважаються роздільниками;
 // /  • усе, що йде після роздільника, починається з великої літери;
 // /  • якщо результат починається не з літери (наприклад, з цифри), додаємо префікс "X".
-func ToGoGlobalName(s string) string {
+func ToGoVariableName(s string) string {
 	// Розбиваємо рядок за будь-яким символом, який НЕ є літерою чи цифрою.
 	words := strings.FieldsFunc(s, func(r rune) bool {
 		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
