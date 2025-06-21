@@ -1,172 +1,190 @@
-name: Release build
-# Original source: https://github.com/Bookshelf-Writer/scripts-for-integration/blob/main/workflows/Example-Build.yml
-# When integrating, actions must have write permissions
+# .github/workflows/release.yml
+name: "release & publish"
 
 on:
-  release:
-    branches:
-      - 'main'
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Гілка з якої робимо реліз"
+        default: "main"
+        required: false
+
+env:
+  PUSH_BRANCH: ${{ inputs.branch || 'main' }}
 
 jobs:
-  generate:
-    name: "Generate and check tag"
+  # ──────────────────────────────── 1. PREPARE ────────────────────────────────────
+  prepare:
+    name: "🔧 Підготовка"
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout code
+      - name: 🛎️ Checkout ${{ env.PUSH_BRANCH }}
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.PUSH_BRANCH }}
           fetch-depth: 0
 
-      - name: Set up Go (1.22)
+      - name: 🔧 Встановити Go 1.22
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
 
-      - name: Load Info from Build
+      - name: 📥 Зчитати версію з build-скриптів
+        id: ver
+        shell: bash
         run: |
+          set -Eeuo pipefail
           nameBuild=$(./_run/scripts/sys.sh -n)
           versionBuild=$(./_run/scripts/sys.sh -v)
-          
-          echo "BUILD_NAME=${nameBuild}" >> build_env.txt
-          echo "BUILD_VER=${versionBuild}" >> build_env.txt
-          
-          echo "NAME: $nameBuild"
-          echo "VER: $versionBuild"
 
-      - name: Check Tag
-        run: |
-          source build_env.txt
-          if [[ "${{ github.event.release.tag_name }}" != "${BUILD_VER}" ]]; then
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
-            echo "::error ::Incorrect release tag. Should match the [${BUILD_VER}]."
-            exit 1
-          fi
+          echo "BUILD_NAME=$nameBuild"   >> $GITHUB_ENV
+          echo "BUILD_VER=$versionBuild" >> $GITHUB_ENV
 
-      - name: Run go generate
-        run: go generate
+          echo "name=$nameBuild"   >> $GITHUB_OUTPUT
+          echo "version=$versionBuild" >> $GITHUB_OUTPUT
 
-      - name: Upload environment variables artifact
+          echo "✔️  Знайдено версію: $versionBuild (імʼя пакету: $nameBuild)"
+
+      - name: 🚀 Опублікувати артефакт з env
         uses: actions/upload-artifact@v4
         with:
           name: build-env
-          path: |
-            build_env.txt
-            value_dependencies.go
-            value_project.go
+          path: ${{ github.workspace }}/$GITHUB_ENV
 
+  # ──────────────────────────────── 2. BUILD ───────────────────────────────────────
   build:
-    name: "Build [${{ matrix.os }}]"
-    needs: generate
+    name: "🛠️ Збірка [${{ matrix.os }}]"
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-        go-version: [1.22]
-    permissions:
-      contents: write
+        go: [ 1.22 ]
+
     steps:
-      - name: Checkout code
+      - name: 🛎️ Checkout ${{ env.PUSH_BRANCH }}
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.PUSH_BRANCH }}
           fetch-depth: 0
 
-      - name: Download build environment artifact
+      - name: 📥 Download env
         uses: actions/download-artifact@v4
         with:
           name: build-env
-          path: .
+          path: ./
 
-      - name: Set up Go
+      - name: 🗒️ Source env
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cat build-env/* >> $GITHUB_ENV
+
+      - name: 🔧 Встановити Go ${{ matrix.go }}
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ matrix.go }}
 
-      - name: Cache Go modules
+      - name: 🗂️ Кеш модулів Go
         uses: actions/cache@v4
         with:
           path: |
-            ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\pkg\mod' || '~/go/pkg/mod' }}
+            ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\pkg\mod' || '~/.cache/go-build' }}
             ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\go\bin' || '~/go/bin' }}
-            go.sum
           key: ${{ runner.os }}-go-${{ hashFiles('go.mod') }}
           restore-keys: ${{ runner.os }}-go
 
-      - name: Load environment variables
-        run: |
-          if [ -f build_env.txt ]; then
-            cat build_env.txt >> $GITHUB_ENV
-          else
-            echo "build_env.txt not found"
-            exit 1
-          fi
+      - name: 🛠️ go build
         shell: bash
-
-      - name: Run build steps
         run: |
+          set -Eeuo pipefail
           go mod tidy
-          go build -ldflags="-s -w" -o buildGo ./cli/...
+          go build -ldflags="-s -w" -o treelang ./cli/...
 
-      - name: Set namespace for Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: echo "FILE_EX=exe" >> $GITHUB_ENV
-        shell: pwsh
-
-      - name: Set namespace for Linux
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: 🏷️ Перейменувати білд + розширення
+        shell: bash
         run: |
-          echo "FILE_EX=bin" >> $GITHUB_ENV
-          chmod +x buildGo
+          set -Eeuo pipefail
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            mv treelang treelang.${{ env.BUILD_VER }}.windows.exe
+          else
+            mv treelang treelang.${{ env.BUILD_VER }}.linux.bin
+            chmod +x treelang.${{ env.BUILD_VER }}.linux.bin
+          fi
 
-      - name: Save build as release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📦 Завантажити білд як артефакт
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: buildGo
-          asset_name: "treelang.${{matrix.os}}.${{ matrix.os == 'windows-latest' && 'exe' || 'bin' }}"
-          asset_content_type: application/octet-stream
+          name: bin-${{ runner.os }}
+          path: treelang.*
 
-  push-version:
-    name: "Push new version"
-    needs: build
+  # ─────────────────────────────── 3. RELEASE ──────────────────────────────────────
+  release:
+    name: "🚀 Публікація релізу"
+    needs: [ build ]
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Checkout code
+      - name: 🛎️ Checkout ${{ env.PUSH_BRANCH }}
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.PUSH_BRANCH }}
           fetch-depth: 0
 
-      - name: Download build environment artifact
+      - name: 📥 Download env
         uses: actions/download-artifact@v4
         with:
           name: build-env
-          path: .
+          path: ./
 
-      - name: Load environment variables
-        run: |
-          if [ -f build_env.txt ]; then
-            cat build_env.txt >> $GITHUB_ENV
-          else
-            echo "build_env.txt not found"
-            exit 1
-          fi
+      - name: 🗒️ Source env
         shell: bash
+        run: cat build-env/* >> $GITHUB_ENV
 
-      - name: Push new version
+      - name: 📥 Download ALL binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: 🏷️ Створити commit без «важкого» та tag ${BUILD_VER}
+        id: tag
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ORIG_SHA=$(git rev-parse HEAD)
+
+          # 1️⃣ Прибираємо зайві шляхи лише з індексу, а не з робочої директорії
+          git rm -r --cached localization localization_go _examples || true
+          git rm --cached $(git ls-files '*.bin' '*.md') || true
+          git rm -r --cached .github || true
+
+          # 2️⃣ Коміт та тег
+          git commit -m "release(${BUILD_VER}): strip heavy assets"
+          git tag -a "${BUILD_VER}" -m "Release ${BUILD_VER}"
+          git push origin "${BUILD_VER}"
+
+          # 3️⃣ Повертаємо repo до початкового стану
+          git reset --hard "$ORIG_SHA"
+
+      - name: 📝 Згенерувати нотатки (авто)
+        id: notes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "notes=$(git --no-pager log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Створити реліз
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.BUILD_VER }}
+          name: ${{ env.BUILD_VER }}
+          generate_release_notes: true
+          files: |
+            dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          new_version=$(./_run/scripts/sys.sh --increment --minor)
-          
-          git add ./_run/values/ver.txt
-          git commit -m "actions [$new_version] "$'\n'"Build: [${BUILD_VER}] >> [$new_version]"
-          git push origin HEAD:main
+
+      - name: ✔️ Готово
+        run: echo "🎉 Реліз $BUILD_VER успішно опубліковано!"
