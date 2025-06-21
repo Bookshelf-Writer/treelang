@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          mkdir -p target tmp      # → обовʼязкові каталоги
+          mkdir -p target tmp  
           go generate
 
       - name: 📦 Зберегти репозиторій як артефакт
@@ -130,7 +130,6 @@ jobs:
         working-directory: repo
         run: |
           set -Eeuo pipefail
-          mkdir -p target tmp      # необов’язково, але залишаємо для симетрії
           go mod tidy
           go build -ldflags="-s -w" -o treelang ./cli/...
 
