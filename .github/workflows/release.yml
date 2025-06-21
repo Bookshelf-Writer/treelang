@@ -101,6 +101,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           go mod tidy
+          go generate
           go build -ldflags="-s -w" -o treelang ./cli/...
 
       - name: 🏷️ Перейменувати білд + розширення
