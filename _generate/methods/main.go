@@ -48,11 +48,15 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println(methods)
+
 	for pos, method := range methods {
 		method = strings.Split(method, "treelang")[1]
 		methods[pos] = gitRoot + method
 	}
 	sort.Strings(methods)
+
+	panic(errors.New(strings.Join(methods, "\n")))
 
 	//
 
@@ -65,16 +69,9 @@ func main() {
 	data.ImportsArr = append(data.ImportsArr, "github.com/spf13/cobra")
 
 	for _, method := range methods {
-		if len(method) == 0 {
-			continue
-		}
 		data.ImportsArr = append(data.ImportsArr, method)
 
 		name := strings.Split(method, "/")
-		if len(name[len(name)-1]) == 0 {
-			panic(errors.New(strings.Join(methods, "; ")))
-			continue
-		}
 		data.Methods = append(data.Methods, name[len(name)-1])
 	}
 
