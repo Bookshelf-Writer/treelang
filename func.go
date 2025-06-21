@@ -5,6 +5,7 @@ import (
 	"errors"
 	"golang.org/x/crypto/blake2b"
 	"sort"
+	"strings"
 	"unicode"
 )
 
@@ -26,24 +27,36 @@ func paramErr(param string, err error) error {
 
 // // // //
 
-func ToGoVariableName(input string) string {
-	var result []rune
-	capitalizeNext := true
+// ToGoGlobalName перетворює довільний рядок на коректний експортований
+// ідентифікатор у стилі PascalCase (CamelCase з великої літери).
+// Правила:
+// /  • усі пробіли та будь-які неалфавітно-цифрові символи вважаються роздільниками;
+// /  • усе, що йде після роздільника, починається з великої літери;
+// /  • якщо результат починається не з літери (наприклад, з цифри), додаємо префікс "X".
+func ToGoGlobalName(s string) string {
+	// Розбиваємо рядок за будь-яким символом, який НЕ є літерою чи цифрою.
+	words := strings.FieldsFunc(s, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	})
 
-	for _, r := range input {
-		if unicode.IsLetter(r) || unicode.IsDigit(r) {
-			if capitalizeNext {
-				result = append(result, unicode.ToUpper(r))
-				capitalizeNext = false
-			} else {
-				result = append(result, r)
-			}
-		} else if unicode.IsSpace(r) {
-			capitalizeNext = true
+	var b strings.Builder
+	for _, w := range words {
+		if w == "" {
+			continue
+		}
+		rs := []rune(w)
+		b.WriteRune(unicode.ToUpper(rs[0]))
+		for _, r := range rs[1:] {
+			b.WriteRune(unicode.ToLower(r))
 		}
 	}
 
-	return string(result)
+	name := b.String()
+	if name == "" || !unicode.IsLetter([]rune(name)[0]) {
+		name = "X" + name
+	}
+
+	return name
 }
 
 func Hash(data []byte) string {
