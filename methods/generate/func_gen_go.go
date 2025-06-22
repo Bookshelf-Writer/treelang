@@ -184,11 +184,10 @@ type TemplateMapObj struct {
 	GenerationTime string
 	PackageName    string
 
-	Langs      []string
-	MasterLang string
+	Langs []string
 }
 
-func createMapGO(arr []*LangInfoObj, master *LangInfoObj, toDir, packageName string) error {
+func createMapGO(arr []*LangInfoObj, toDir, packageName string) error {
 	if len(arr) == 0 {
 		return errors.New("can't build a map, no data")
 	}
@@ -204,18 +203,6 @@ func createMapGO(arr []*LangInfoObj, master *LangInfoObj, toDir, packageName str
 		data.Langs = append(data.Langs, strings.ToUpper(info.Code))
 	}
 	sort.Strings(data.Langs)
-
-	data.MasterLang = strings.ToUpper(master.Code)
-	for i, val := range data.Langs {
-		if val == data.MasterLang {
-			if i == 0 {
-				break
-			}
-
-			data.Langs[0], data.Langs[i] = data.Langs[i], data.Langs[0]
-			break
-		}
-	}
 
 	//
 

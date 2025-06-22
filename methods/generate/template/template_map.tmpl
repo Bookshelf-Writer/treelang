@@ -15,8 +15,6 @@ const (
         Lang{{$lang}}
     {{- end }}
 {{- end }}
-
-MasterLang = Lang{{.MasterLang}}
 )
 
 // // // // // // // //
@@ -26,7 +24,7 @@ var LangMap = make(map[LangType]*LangObj)
 func (parent LangType) Obj() *LangObj {
 obj, ok := LangMap[parent]
 if !ok {
-return LangMap[MasterLang]
+return LangMap[0]
 }
 return obj
 }
