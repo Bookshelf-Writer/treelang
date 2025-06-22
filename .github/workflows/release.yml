@@ -77,6 +77,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           mkdir -p target tmp
+          go mod download
           go generate
 
       - name: 📦 Зберегти репозиторій як артефакт
@@ -200,7 +201,8 @@ jobs:
           set -Eeuo pipefail
           ORIG_SHA=$(git rev-parse HEAD)
 
-          mkdir -p target
+          mkdir -p target tmp
+          go mod download
           go generate    
           git add -f target
 
