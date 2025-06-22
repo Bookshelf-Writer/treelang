@@ -72,12 +72,16 @@ jobs:
           cache: true
           go-version: ${{ env.GO_VERSION }}
 
+      - name: 📥 go mod download
+        run: go mod download
+
       - name: 🛠️ go generate
         shell: bash
+        env:
+          GOFLAGS: -mod=mod
         run: |
           set -Eeuo pipefail
           mkdir -p target tmp
-          go mod download
           go generate
 
       - name: 📦 Зберегти репозиторій як артефакт
@@ -202,7 +206,6 @@ jobs:
           ORIG_SHA=$(git rev-parse HEAD)
 
           mkdir -p target tmp
-          go mod download
           go generate    
           git add -f target
 
