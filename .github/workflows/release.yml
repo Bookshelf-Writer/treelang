@@ -180,6 +180,13 @@ jobs:
         with:
           path: dist
 
+      - name: 👤 Налаштувати git-користувача
+        shell: bash
+        run: |
+          git config --global user.name  "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: 🏷️ Створити commit без «важкого» та tag ${BUILD_VER}
         id: tag
         shell: bash
@@ -187,10 +194,9 @@ jobs:
           set -Eeuo pipefail
           ORIG_SHA=$(git rev-parse HEAD)
 
-          # 1️⃣ Прибираємо зайві шляхи лише з індексу, а не з робочої директорії
-          git rm -r --cached localization localization_go _examples || true
-          git rm --cached $(git ls-files '*.bin' '*.md') || true
-          git rm -r --cached .github || true
+          # 1️⃣ Прибираємо зайві шляхи лише з індексу — без помилок, якщо файлів немає
+          git rm -r --cached --ignore-unmatch .github _generate _run cli
+          git rm --cached --ignore-unmatch $(git ls-files '*.bin' '*.md')
 
           # 2️⃣ Коміт та тег
           git commit -m "release(${BUILD_VER}): strip heavy assets"
