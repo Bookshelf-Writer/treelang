@@ -202,7 +202,8 @@ jobs:
           ORIG_SHA=$(git rev-parse HEAD)
 
           mkdir -p target
-          go generate         
+          go generate    
+          git add -f target
 
           # 1️⃣ Прибираємо зайві шляхи лише з індексу — без помилок, якщо файлів немає
           git rm -r --cached --ignore-unmatch .github _generate _run cli gen.go .gitignore
