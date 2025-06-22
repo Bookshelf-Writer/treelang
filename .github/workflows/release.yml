@@ -126,6 +126,7 @@ jobs:
           restore-keys: ${{ runner.os }}-go
 
       - name: 🛠️ go build
+        id: build
         shell: bash
         working-directory: repo
         run: |
@@ -134,18 +135,23 @@ jobs:
           case "${{ runner.os }}" in
             Windows) out="treelang.windows.exe" ;;
             Linux)   out="treelang.linux.bin"   ;;
-            macOS)   out="treelang.darwin.bin"  ;;
+            Darwin)   out="treelang.darwin.bin"  ;;
           esac
           
           go mod tidy
           go build -ldflags="-s -w" -o "$out" ./cli/...
           [[ "$out" == *.bin ]] && chmod +x "$out"
+          
+          echo "OUT=$out"           >> $GITHUB_ENV 
+          echo "out=$out"           >> $GITHUB_OUTPUT
+
 
       - name: 📦 Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.out }}
-          path: repo/${{ env.out }}
+          name: ${{ steps.build.outputs.out }}
+          if-no-files-found: error
+          path: repo/${{ steps.build.outputs.out }}
 
   # ─────────────────────────────── 4. RELEASE ──────────────────────────────────────
   release:
