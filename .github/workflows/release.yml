@@ -191,6 +191,9 @@ jobs:
           merge-multiple: true
           path: dist
 
+      - name: 📥 go mod download
+        run: go mod download
+
       - name: 👤 Налаштувати git-користувача
         shell: bash
         run: |
@@ -201,6 +204,8 @@ jobs:
       - name: 🏷️ Створити commit без «важкого» та tag ${BUILD_VER}
         id: tag
         shell: bash
+        env:
+          GOFLAGS: -mod=mod
         run: |
           set -Eeuo pipefail
           ORIG_SHA=$(git rev-parse HEAD)
