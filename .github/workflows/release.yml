@@ -198,6 +198,7 @@ jobs:
           set -Eeuo pipefail
           ORIG_SHA=$(git rev-parse HEAD)
 
+          rm .gitignore
           mkdir -p target
           go generate         
 
