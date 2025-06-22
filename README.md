@@ -11,87 +11,87 @@
 ```
 
 ```bash
-go build -ldflags="-s -w" -o treelang.bin ./cli/...
+go build -ldflags="-s -w" -o treelang.linux.bin  ./cli/...
 ```
 
 ```bash
-./treelang.bin
+./treelang.linux.bin
 ```
 
 ```bash
-./treelang.bin --help
+./treelang.linux.bin --help
 ```
 
 ```bash
-./treelang.bin info
-```
-
----
-
-```bash
-./treelang.bin diff -h
-```
-
-```bash
-./treelang.bin diff --from treeLang/
-```
-
-```bash
-./treelang.bin diff --from treeLang/ --mode all
-```
-
-```bash
-./treelang.bin diff --from treeLang/ --master treeLang/en.json
-```
-
-```bash
-./treelang.bin diff --from treeLang/ --master treeLang/en.json --full
-```
-
-```bash
-./treelang.bin diff --master treeLang/en.json --slave treeLang/pl.json
-```
-
-```bash
-./treelang.bin diff --master treeLang/en.json --slave treeLang/pl.json --full
+./treelang.linux.bin info
 ```
 
 ---
 
 ```bash
-./treelang.bin generate -h
+./treelang.linux.bin diff -h
 ```
 
 ```bash
-./treelang.bin generate --from treeLang --to TEMP --json --master TEMP/treelang_en.gen.yml
+./treelang.linux.bin diff --from treeLang/
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --json
+./treelang.linux.bin diff --from treeLang/ --mode all
 ```
 
 ```bash
-./treelang.bin generate --from treeLang --to TEMP --json --map
+./treelang.linux.bin diff --from treeLang/ --master treeLang/en.json
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --yml
+./treelang.linux.bin diff --from treeLang/ --master treeLang/en.json --full
 ```
 
 ```bash
-./treelang.bin generate --from treeLang --to TEMP --yml --map
+./treelang.linux.bin diff --master treeLang/en.json --slave treeLang/pl.json
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --go-package main
+./treelang.linux.bin diff --master treeLang/en.json --slave treeLang/pl.json --full
+```
+
+---
+
+```bash
+./treelang.linux.bin generate -h
 ```
 
 ```bash
-./treelang.bin generate --from treeLang/en.json --to TEMP --go-package main --func-png
+./treelang.linux.bin generate --from treeLang --to TEMP --json --master TEMP/treelang_en.gen.yml
 ```
 
 ```bash
-./treelang.bin generate --from treeLang --to TEMP --go-package main --map
+./treelang.linux.bin generate --from treeLang/en.json --to TEMP --json
+```
+
+```bash
+./treelang.linux.bin generate --from treeLang --to TEMP --json --map
+```
+
+```bash
+./treelang.linux.bin generate --from treeLang/en.json --to TEMP --yml
+```
+
+```bash
+./treelang.linux.bin generate --from treeLang --to TEMP --yml --map
+```
+
+```bash
+./treelang.linux.bin generate --from treeLang/en.json --to TEMP --go-package main
+```
+
+```bash
+./treelang.linux.bin generate --from treeLang/en.json --to TEMP --go-package main --func-png
+```
+
+```bash
+./treelang.linux.bin generate --from treeLang --to TEMP --go-package main --map
 ```
 
 ---
