@@ -28,6 +28,7 @@ jobs:
       - name: 🔧 Встановити Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
         with:
+          cache: true
           go-version: ${{ env.GO_VERSION }}
 
       - name: 📥 Зчитати версію з build-скриптів
@@ -68,6 +69,7 @@ jobs:
       - name: 🔧 Встановити Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
         with:
+          cache: true
           go-version: ${{ env.GO_VERSION }}
 
       - name: 🛠️ go generate
@@ -81,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: src-gen
-          path: .
+          path: target/**
           retention-days: 1
 
   # ─────────────────────────────── 3. BUILD ───────────────────────────────────────
@@ -114,6 +116,7 @@ jobs:
       - name: 🔧 Встановити Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
         with:
+          cache: true
           go-version: ${{ env.GO_VERSION }}
 
       - name: 🗂️ Кеш модулів Go
@@ -198,12 +201,11 @@ jobs:
           set -Eeuo pipefail
           ORIG_SHA=$(git rev-parse HEAD)
 
-          rm .gitignore
           mkdir -p target
           go generate         
 
           # 1️⃣ Прибираємо зайві шляхи лише з індексу — без помилок, якщо файлів немає
-          git rm -r --cached --ignore-unmatch .github _generate _run cli gen.go
+          git rm -r --cached --ignore-unmatch .github _generate _run cli gen.go .gitignore
           git rm --cached --ignore-unmatch $(git ls-files '*.bin' '*.md')
           
           # 2️⃣ Коміт та тег
@@ -235,3 +237,13 @@ jobs:
           git push origin HEAD:main
           
           echo "🎉 Реліз $BUILD_VER успішно опубліковано!"
+
+      - name: 🧹 Видалити тимчасові артефакти
+        if: success()
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            build-env
+            src-gen
+            treelang.*
+          failOnError: false
