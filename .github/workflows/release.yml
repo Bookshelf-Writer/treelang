@@ -76,7 +76,8 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          mkdir -p target tmp  
+          mkdir -p target tmp
+          go mod tidy
           go generate
 
       - name: 📦 Зберегти репозиторій як артефакт
@@ -141,7 +142,6 @@ jobs:
             Darwin)   out="treelang.darwin.bin"  ;;
           esac
           
-          go mod tidy
           go build -ldflags="-s -w" -o "$out" ./cli/...
           [[ "$out" == *.bin ]] && chmod +x "$out"
           
