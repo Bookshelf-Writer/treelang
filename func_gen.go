@@ -1,4 +1,4 @@
-package _generate
+package treelang
 
 import (
 	"bytes"

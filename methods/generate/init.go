@@ -113,7 +113,7 @@ var generateCmd = &cobra.Command{
 
 		if CmdPackage != "" {
 			if *CmdMap {
-				return writeGoMap(CmdFromFilePath, CmdToFilePath, CmdPackage)
+				return writeGoMap(CmdFromFilePath, CmdToFilePath, CmdMasterFile, CmdPackage)
 			} else {
 				return writeGoData(CmdMasterFile, CmdFromFilePath, CmdToFilePath, CmdPackage)
 			}

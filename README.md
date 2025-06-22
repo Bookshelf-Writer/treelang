@@ -96,6 +96,18 @@ go build -ldflags="-s -w" -o treelang.linux.bin  ./cli/...
 
 ---
 
+```bash
+./treelang.linux.bin generate --from tmp/localization/iBregus_Secret_App/uk.json --to tmp/localization --go-package localization
+```
+
+```bash
+./treelang.linux.bin generate --from tmp/localization/iBregus_Secret_App/uk.json --to tmp/localization --go-package localization --func-png
+```
+
+```bash
+./treelang.linux.bin generate --from tmp/localization/iBregus_Secret_App/uk.json --to tmp/localization --go-package localization --map
+```
+
 ---
 
 ### Mirrors

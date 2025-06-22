@@ -1,0 +1,32 @@
+// Code generated using 'github.com/Bookshelf-Writer/treelang'; DO NOT EDIT.
+// Generation time: {{.GenerationTime}}
+
+package {{.PackageName}}
+
+// // // // // // // // // // // // // // // // // //
+
+type LangType uint8
+
+const (
+{{- range $index, $lang := .Langs }}
+    {{- if eq $index 0 }}
+        Lang{{$lang}} LangType = iota
+    {{- else }}
+        Lang{{$lang}}
+    {{- end }}
+{{- end }}
+
+MasterLang = Lang{{.MasterLang}}
+)
+
+// // // // // // // //
+
+var LangMap = make(map[LangType]*LangObj)
+
+func (parent LangType) Obj() *LangObj {
+obj, ok := LangMap[parent]
+if !ok {
+return LangMap[MasterLang]
+}
+return obj
+}

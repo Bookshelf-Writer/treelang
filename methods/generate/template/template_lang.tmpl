@@ -1,0 +1,23 @@
+// Code generated using 'github.com/Bookshelf-Writer/treelang'; DO NOT EDIT.
+// Generation time: {{.GenerationTime}}
+
+package {{.PackageName}}
+
+
+import (
+"encoding/json"
+)
+
+// // // // // // // // // // // // // // // // // //
+
+var {{.Name}}  *LangObj
+const _{{.SmallName}} = `{{.DataJson}}`
+
+func init() {
+{{.Name}} = new(LangObj)
+err := json.Unmarshal([]byte(_{{.SmallName}}), {{.Name}})
+if err != nil {
+panic(err)
+}
+LangMap[Lang{{.Name}}] = {{.Name}}
+}

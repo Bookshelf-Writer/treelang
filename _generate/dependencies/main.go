@@ -4,13 +4,12 @@ import (
 	"bufio"
 	_ "embed"
 	"fmt"
+	dep "github.com/Bookshelf-Writer/treelang"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
-
-	dep "github.com/Bookshelf-Writer/treelang/_generate"
 )
 
 // // // // // // // // // //

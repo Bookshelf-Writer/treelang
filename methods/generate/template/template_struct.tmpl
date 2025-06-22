@@ -1,0 +1,98 @@
+// Code generated using 'github.com/Bookshelf-Writer/treelang'; DO NOT EDIT.
+// Generation time: {{.GenerationTime}}
+
+package {{.PackageName}}
+
+{{- if gt (len .ImportsArr) 0 }}
+    {{- if eq (len .ImportsArr) 1 }}
+        {{- $imp := index .ImportsArr 0 }}
+        {{- $parts := split $imp " " }}
+        {{- if gt (len $parts) 1 }}
+            import {{ index $parts 0 }} "{{ index $parts 1 }}"
+        {{- else }}
+            import "{{ index $parts 0 }}"
+        {{- end }}
+    {{- else }}
+        import (
+        {{- range .ImportsArr }}
+            {{- $parts := split . " " }}
+            {{- if gt (len $parts) 1 }}
+                {{ index $parts 0 }} "{{ index $parts 1 }}"
+            {{- else }}
+                "{{ . }}"
+            {{- end }}
+        {{- end }}
+        )
+    {{- end }}
+{{- end }}
+
+// // // // // // // // // // // // // // // // // //
+
+{{- range $title, $maps := .Struct }}
+    type {{ $title }}Obj struct {
+    {{- range $name, $arr := $maps }}
+        {{- $typ   := index $arr 0 }}
+        {{- $json  := "" }}
+        {{- if ge (len $arr) 2 }}{{- $json  = index $arr 1 }}{{- end }}
+        {{- $text  := "" }}
+        {{- if ge (len $arr) 3 }}{{- $text  = index $arr 2 }}{{- end }}
+
+        {{- if eq $text "" }}
+            {{- printf "\t%-6s %s `json:\"%s\" yaml:\"%s\"`" $name $typ $json $json }}
+        {{- else }}
+            {{- printf "\t%-6s %s `json:\"%s\" yaml:\"%s\"` // %s" $name $typ $json $json $text }}
+        {{- end }}
+        {{- "\n" }}
+    {{- end }}
+    }
+{{- end }}
+
+
+// // // // // // // //
+
+type LangInfoNameObj struct {
+DEF string `json:"def",yaml:"def",`
+EN  string `json:"en",yaml:"en",`
+}
+
+type LangInfoObj struct {
+Code string           `json:"code",yaml:"code",`
+Flag string           `json:"flag",yaml:"flag",`
+Name *LangInfoNameObj `json:"name",yaml:"name",`
+}
+
+type LangSysObj struct {
+Date string `json:"date",yaml:"date",`
+Hash string `json:"hash",yaml:"hash",`
+}
+
+{{- if .CmdGoPNG }}
+func (parent *LangInfoObj) PNG() (err error, img *image.RGBA) {
+svgReader := bytes.NewReader([]byte(parent.Flag))
+icon, err := oksvg.ReadIconStream(svgReader)
+if err != nil {
+return
+}
+
+width := 600
+height := 400
+if icon.ViewBox.W != 0 || icon.ViewBox.H != 0 {
+width = int(icon.ViewBox.W)
+height = int(icon.ViewBox.H)
+}
+
+img = image.NewRGBA(image.Rect(0, 0, width, height))
+icon.SetTarget(0, 0, float64(width), float64(height))
+dasher := rasterx.NewDasher(width, height, rasterx.NewScannerGV(width, height, img, img.Bounds()))
+icon.Draw(dasher, 1.0)
+
+return
+}
+{{- end }}
+// // // // // // // //
+
+type LangObj struct {
+Data *DataObj     `json:"data",yaml:"data",`
+Info *LangInfoObj `json:"info",yaml:"info",`
+Sys  *LangSysObj  `json:"sys",yaml:"sys",`
+}

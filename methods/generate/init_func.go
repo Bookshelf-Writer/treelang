@@ -148,13 +148,18 @@ func writeGoData(fromFilePath, fromReadDir, toDir, packageName string) error {
 	return writeGoStruct(fromFilePath, toDir, packageName)
 }
 
-func writeGoMap(fromReadDir, toDir, packageName string) error {
+func writeGoMap(fromReadDir, toDir, fromMasterFile, packageName string) error {
 	arr, err := parseMap(fromReadDir)
 	if err != nil {
 		return err
 	}
 
-	err = createMapGO(arr, toDir, packageName)
+	master, err := ReadFile(fromMasterFile)
+	if err != nil {
+		return err
+	}
+
+	err = createMapGO(arr, master.Info, toDir, packageName)
 	if err == nil {
 		fmt.Printf("Created: MAP\n")
 	}
